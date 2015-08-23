@@ -57,7 +57,7 @@ object Main {
 
     HTMLDocument.write(docTreeWithOutput,
       "manual.html",
-      cssPath = Some("kult.css"),
+      cssPath = Some("styles/kult.css"),
       meta = Some(meta),
       toc = Some(toc))
   }
