@@ -52,7 +52,7 @@ import org.scalarelational.table.Table</code></pre><h2 id="schema">Schema</h2><p
     val rating = column[Option[Double], Double](&quot;RATING&quot;)
     val total = column[Int](&quot;TOTAL&quot;)
   }
-}</code></pre><p>Our <code>Datastore</code> contains <code>Table</code>s and our <code>Table</code>s contain <code>Column</code>s. As for the <code>Datastore</code> we have chosen an in-memory H2 database. Every column type must have a <code>DataType</code> associated with it. You don't see it referenced above because all standard Scala types have predefined implicit conversions available (see the <a href="https://github.com/outr/scalarelational/blob/master/core/src/main/scala/org/scalarelational/datatype/DataTypeSupport.scala"><code>DataTypeSupport</code></a> trait for more information). If you need to use a type that is not supported by ScalaRelational, please refer to <a href="#custom-column-type">Defining a custom type</a>.</p><h2 id="create-database">Create database</h2><p>Now that we have our schema defined in Scala, we need to create the tables in the database:
+}</code></pre><p>Our <code>Datastore</code> contains <code>Table</code>s and our <code>Table</code>s contain <code>Column</code>s. As for the <code>Datastore</code> we have chosen an in-memory H2 database. Every column type must have a <code>DataType</code> associated with it. You don't see it referenced above because all standard Scala types have predefined implicit conversions available <a href="#fn0" class="footnote" id="fnref0">[0]</a>. If you need to use a type that is not supported by ScalaRelational, please refer to <a href="#custom-column-type">Defining a custom type</a>.</p><h2 id="create-database">Create database</h2><p>Now that we have our schema defined in Scala, we need to create the tables in the database:
 
     </p><pre class="sourceCode scala"><code>import ExampleDatastore._
 
@@ -430,6 +430,15 @@ ${Long description}</code></pre><p>Try not to exceed 50 characters in the first 
   THE SOFTWARE.
 </p>
 
+          <div class="footnotes">
+            <hr/>
+            <ol><li id="fn0">
+              <p>
+                See the <a href="https://github.com/outr/scalarelational/blob/master/core/src/main/scala/org/scalarelational/datatype/DataTypeSupport.scala"><code>DataTypeSupport</code></a> trait for more information
+                <a href="#fnref0" class="reversefootnote"> ↩</a>
+              </p>
+            </li></ol>
+          </div>
           <p><small>Generated with <a href="http://github.com/MetaStack-pl/MetaDocs">MetaDocs</a>.</small></p>
         </div>
       </body>

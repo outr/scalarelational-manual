@@ -48,7 +48,7 @@ chapter[Getting Started] {
       }
     *}
 
-    Our code{Datastore} contains code{Table}s and our code{Table}s contain code{Column}s. As for the code{Datastore} we have chosen an in-memory H2 database. Every column type must have a code{DataType} associated with it. You don't see it referenced above because all standard Scala types have predefined implicit conversions available (see the url[https://github.com/outr/scalarelational/blob/master/core/src/main/scala/org/scalarelational/datatype/DataTypeSupport.scala]{code{DataTypeSupport}} trait for more information). If you need to use a type that is not supported by ScalaRelational, please refer to jump[custom-column-type]{}.
+    Our code{Datastore} contains code{Table}s and our code{Table}s contain code{Column}s. As for the code{Datastore} we have chosen an in-memory H2 database. Every column type must have a code{DataType} associated with it. You don't see it referenced above because all standard Scala types have predefined implicit conversions available footnote{See the url[https://github.com/outr/scalarelational/blob/master/core/src/main/scala/org/scalarelational/datatype/DataTypeSupport.scala]{code{DataTypeSupport}} trait for more information}. If you need to use a type that is not supported by ScalaRelational, please refer to jump[custom-column-type]{}.
   }
 
   section[Create database] {
