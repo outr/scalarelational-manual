@@ -1,0 +1,13 @@
+chapter[Appendix: Benchmarks] {
+  As you can see from the results below, the performance in ScalaRelational is significantly better than that of Slick. We will be adding additional tests and additional frameworks in the future.
+
+  Please refer to the url[https://github.com/outr/scalarelational-benchmarks]{benchmark project} for more information.
+
+  image[http://captiveimagination.com/download/SlickComparison01.png?2]{}
+
+  image[http://captiveimagination.com/download/SlickComparison02.png?2]{}
+
+  image[http://captiveimagination.com/download/SlickComparison03.png?2]{}
+
+  image[http://captiveimagination.com/download/SlickComparison04.png?2]{}
+}

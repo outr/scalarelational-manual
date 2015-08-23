@@ -21,7 +21,7 @@ object Main {
       .sorted
 
     val instructionSet = DefaultInstructionSet
-      .inherit(ScalaInstructionSet)
+      .inherit(CodeInstructionSet)
       .inherit(DraftInstructionSet)
       .withAliases(Map(
         "b" -> Bold,

@@ -1,0 +1,436 @@
+<!DOCTYPE html><html lang="en-GB">
+      <head>
+        <title>ScalaRelational User Manual v1.1.0</title>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta name="generator" content="MetaDocs"/>
+        <link rel="stylesheet" type="text/css" href="styles/kult.css"/>
+      </head>
+
+      <body>
+        <div id="wrapper">
+          <header>
+        <h3 class="date">August 2015</h3>
+        <h1 class="title">ScalaRelational User Manual v1.1.0</h1>
+        <h2 class="author">Matt Hicks, Tim Nieradzik</h2>
+        <p class="affilation"><em>OUTR Technologies, LLC</em></p>
+      </header>
+          <nav id="toc"><ul><li><a href="#introduction">Introduction</a><ul><li><a href="#why-not-an-orm?">Why not an ORM?</a></li></ul><ul><li><a href="#why-not-interpolation?">Why not Interpolation?</a></li></ul><ul><li><a href="#why-not-functional-relational-programming?">Why not Functional-Relational Programming?</a></li></ul><ul><li><a href="#our-approach:-dsl-and-mapper">Our approach: DSL and Mapper</a></li></ul><ul><li><a href="#features">Features</a></li></ul></li></ul><ul><li><a href="#getting-started">Getting Started</a><ul><li><a href="#sbt-dependencies">sbt dependencies</a></li></ul><ul><li><a href="#library-imports">Library imports</a></li></ul><ul><li><a href="#schema">Schema</a></li></ul><ul><li><a href="#create-database">Create database</a></li></ul><ul><li><a href="#inserting">Inserting</a></li></ul><ul><li><a href="#querying">Querying</a></li></ul><ul><li><a href="#remarks">Remarks</a></li></ul></li></ul><ul><li><a href="#mapper">Mapper</a><ul><li><a href="#sbt-dependency">sbt dependency</a></li></ul><ul><li><a href="#library-imports-1">Library imports</a></li></ul><ul><li><a href="#table-definition">Table definition</a></li></ul><ul><li><a href="#entities">Entities</a></li></ul><ul><li><a href="#insert">Insert</a></li></ul><ul><li><a href="#batch-inserting">Batch inserting</a></li></ul><ul><li><a href="#query">Query</a></li></ul><ul><li><a href="#polymorphic-tables">Polymorphic tables</a></li></ul></li></ul><ul><li><a href="#querying-1">Querying</a><ul><li><a href="#session-management">Session management</a></li></ul><ul><li><a href="#transactions">Transactions</a></li></ul><ul><li><a href="#select">Select</a></li></ul><ul><li><a href="#update">Update</a></li></ul><ul><li><a href="#delete">Delete</a></li></ul><ul><li><a href="#sql-functions">SQL functions</a></li></ul></li></ul><ul><li><a href="#table-definition-1">Table definition</a><ul><li><a href="#mapper-1">Mapper</a></li></ul><ul><li><a href="#column-types">Column types</a></li></ul><ul><li><a href="#column-properties">Column properties</a></li></ul><ul><li><a href="#versioning">Versioning</a></li></ul></li></ul><ul><li><a href="#architecture">Architecture</a><ul><li><a href="#jdbc">JDBC</a></li></ul><ul><li><a href="#macros">Macros</a></li></ul></li></ul><ul><li><a href="#ch-database-support">Database support</a><ul><li><a href="#compatibility">Compatibility</a></li></ul><ul><li><a href="#h2">H2</a></li></ul><ul><li><a href="#mariadb/mysql">MariaDB/MySQL</a></li></ul></li></ul><ul><li><a href="#support">Support</a><ul><li><a href="#test-cases">Test cases</a></li></ul><ul><li><a href="#links">Links</a></li></ul></li></ul><ul><li><a href="#contributing">Contributing</a><ul><li><a href="#manual">Manual</a></li></ul><ul><li><a href="#developing">Developing</a></li></ul><ul><li><a href="#committing">Committing</a></li></ul><ul><li><a href="#license">License</a></li></ul><ul><li><a href="#releases">Releases</a></li></ul></li></ul><ul><li><a href="#appendix:-changelog">Appendix: Changelog</a></li></ul><ul><li><a href="#appendix:-benchmarks">Appendix: Benchmarks</a></li></ul><ul><li><a href="#appendix:-license">Appendix: License</a></li></ul></nav>
+          <p><small><strong>Abstract: </strong><em>
+  ScalaRelational is a type-safe framework for defining, modifying, and querying SQL databases in Scala.
+</em></small></p><h1 id="introduction">Introduction</h1><p><i>ScalaRelational</i> is a database framework which provides a type-safe DSL for SQL in Scala. The goal in its design is to be a thin layer over SQL, making it one of the fastest database abstractions for the Scala programming language.</p><h2 id="why-not-an-orm?">Why not an ORM?</h2><p>Unlike ORMs, ScalaRelational requires you to write regular SQL queries. This has the benefit that the database interaction is transparent and queries can be debugged easily.</p><p>There has been a shift recently away from ORMs since they tend to focus only on the most simplistic use-cases for dealing with your database. An ORM complicates matters should you have a more complex usage scenario, like cascading relationships. In addition, the performance penalties (i.e. inefficient queries) are pretty substantial. Other downsides are missing features and confusing code mapping.
+  </p><h2 id="why-not-interpolation?">Why not Interpolation?</h2><p>There are SQL frameworks (such as <a href="https://github.com/tpolecat/doobie">Doobie</a>) that use string interpolation to achieve type-checked queries. They have the advantage that no new DSL needs to be learned as raw SQL queries can be written within Scala code.</p><p>On the other hand, the queries are not compositional. It may be required to return an incomplete query from a function and refine it in different parts of the application with a conditional <code>WHERE</code> clause. This would allow manual string manipulations, which is error-prone.</p><h2 id="why-not-functional-relational-programming?">Why not Functional-Relational Programming?</h2><p>FRP frameworks with <a href="http://slick.typesafe.com/">Slick</a> as a precursor have gained some popularity. They allow to generate SQL queries from a more functional-inspired querying syntax that involve functions like <code>filter()</code> or <code>for ... yield</code> expressions. The following example would correspond to the SQL query <code>SELECT name FROM people</code>.</p><pre class="sourceCode scala"><code>for { p &lt;- people } yield p.name</code></pre><p>Unfortunately, the diverging syntax limits the readability and potential use case scenarios.
+  </p><h2 id="our-approach:-dsl-and-mapper">Our approach: DSL and Mapper</h2><p>It is worth mentioning that much of the functionality of this framework was inspired by the aforementioned database frameworks.</p><p>The main contribution from ORMs is that mapping classes to and from the database is a huge time saver and leads to code that is more maintainable. From interpolating frameworks we took the idea of an SQL-inspired DSL, but with the requirement of staying as close as possible to its syntax.</p><p>Another design decision was to focus on performance and ease-of-use. Therefore, ScalaRelational does not require you to use a code generator and we have made sure that performance-critical parts don't use <i>reflection</i> internally. There is a <a href="https://github.com/outr/scalarelational-benchmarks">benchmark suite</a> we use to regularly compare the performance against other frameworks.</p><h3 id="dsl-for-querying">DSL for querying</h3><p>For each database table, a schema must be defined which records all available columns and, if a table is polymorphic, its sub-types. Columns are statically typed carrying the underlying SQL database type and the mapped Scala type.</p><p>All query types (like <code>INSERT</code> or <code>UPDATE</code>) have a Scala representation, which require you to refer to your schema and the columns in it. Less common SQL features such as query functions (<code>AVG</code>, <code>MIN</code>, <code>MAX</code> etc.) are supported too.</p><h3 id="mapping">Mapping</h3><p>Additionally, ScalaRelational has a sub-project which implements a feature called <i>mapper</i>. Its purpose is two-fold: mapping column values in <code>SELECT</code> queries to a <code>case class</code> and vice-versa (for <code>INSERT</code> or <code>UPDATE</code> queries).</p><p>If a table has many columns and it is not desired to fetch all column values of a row, ScalaRelational gives the ability to have <code>case class</code>es that define a subset.</p><div><b>Todo:</b> Give an example in some other section</div><p>You can represent different scenarios whether you're querying simple data from one table, querying many columns joined across many tables, or dealing with calculated reports generated by a SQL query.
+    </p><h2 id="features">Features</h2><div><b>Todo:</b> Extend this list</div><ul><li>Type-safe table schemas and queries</li><li>Proximity to SQL</li><li>IDE support for queries</li><li>Support for raw SQL queries</li><li>Database-agnostic interface that accounts for differences in SQL implementations</li><li>Modular design</li><li>Optimised for speed</li></ul><h3 id="database-support">Database support</h3><p>Currently supported databases are:
+
+      </p><ul><li>H2</li><li>PostgreSQL <div><b>Todo:</b> Remove from this list?</div></li><li>MariaDB/MySQL</li></ul><p>Other databases technically are supported though certain functionality may require some slight alterations to work properly. If you need support for other databases, please <a href="#support">get in touch with us</a>.</p>
+<h1 id="getting-started">Getting Started</h1><p>This chapter will guide you through creating your first project with ScalaRelational. For the sake of simplicity we will use an in-memory H2 database.
+
+  </p><h2 id="sbt-dependencies">sbt dependencies</h2><p>The first thing you need to do is add ScalaRelational's H2 module to your sbt project:
+
+    </p><pre class="sourceCode scala"><code>libraryDependencies += &quot;org.scalarelational&quot; % &quot;scalarelational-h2_2.11&quot; % &quot;1.1.0-SNAPSHOT&quot;</code></pre><div><b>Todo:</b> Why do we need to add <code>_2.11</code>? Do we also publish for 2.10?</div><p>If you'd prefer to use another database instead, please refer to the chapter <a href="#ch-database-support">Database support</a>.</p><h2 id="library-imports">Library imports</h2><p>You will need the following imports:
+
+    </p><pre class="sourceCode scala"><code>import org.scalarelational.column.property._
+import org.scalarelational.h2.{H2Datastore, H2Memory}
+import org.scalarelational.table.Table</code></pre><h2 id="schema">Schema</h2><p>The next thing you need is the database representation in Scala. The schema can map to an existing database or you can use it to create the tables in your database:
+
+    </p><pre class="sourceCode scala"><code>object ExampleDatastore extends H2Datastore(mode = H2Memory(&quot;example&quot;)) {
+  object suppliers extends Table(&quot;SUPPLIERS&quot;) {
+    val id = column[Int](&quot;SUP_ID&quot;, PrimaryKey)
+    val name = column[String](&quot;SUP_NAME&quot;)
+    val street = column[String](&quot;STREET&quot;)
+    val city = column[String](&quot;CITY&quot;)
+    val state = column[String](&quot;STATE&quot;)
+    val zip = column[String](&quot;ZIP&quot;)
+  }
+
+  object coffees extends Table(&quot;COFFEES&quot;) {
+    val name = column[String](&quot;COF_NAME&quot;, PrimaryKey)
+    val supID = column[Int](&quot;SUP_ID&quot;, new ForeignKey(ExampleDatastore.suppliers.id))
+    val price = column[Double](&quot;PRICE&quot;)
+    val sales = column[Int](&quot;SALES&quot;)
+    val rating = column[Option[Double], Double](&quot;RATING&quot;)
+    val total = column[Int](&quot;TOTAL&quot;)
+  }
+}</code></pre><p>Our <code>Datastore</code> contains <code>Table</code>s and our <code>Table</code>s contain <code>Column</code>s. As for the <code>Datastore</code> we have chosen an in-memory H2 database. Every column type must have a <code>DataType</code> associated with it. You don't see it referenced above because all standard Scala types have predefined implicit conversions available (see the <a href="https://github.com/outr/scalarelational/blob/master/core/src/main/scala/org/scalarelational/datatype/DataTypeSupport.scala"><code>DataTypeSupport</code></a> trait for more information). If you need to use a type that is not supported by ScalaRelational, please refer to <a href="#custom-column-type">Defining a custom type</a>.</p><h2 id="create-database">Create database</h2><p>Now that we have our schema defined in Scala, we need to create the tables in the database:
+
+    </p><pre class="sourceCode scala"><code>import ExampleDatastore._
+
+session {
+  create(suppliers, coffees)
+}</code></pre><p>All database queries must take place within a <i>session</i>. Sessions will be explained in <a href="#session-management">Session management</a>.</p><h3 id="import">Import</h3><p>You'll notice we imported <code>ExampleDatastore._</code> in an effort to minimise the amount of code required here. We can explicitly write it more verbosely like this:</p><pre class="sourceCode scala"><code>ExampleDatastore.session {
+  ExampleDatastore.create(
+    ExampleDatastore.suppliers,
+    ExampleDatastore.coffees
+  )
+}</code></pre><p>For the sake of readability importing the datastore is generally suggested.
+    </p><h2 id="inserting">Inserting</h2><p>ScalaRelational supports type-safe insertions:
+
+    </p><pre class="sourceCode scala"><code>import ExampleDatastore._
+import suppliers._
+
+session {
+  insert(id(101), name(&quot;Acme, Inc.&quot;), street(&quot;99 Market Street&quot;),
+    city(&quot;Groundsville&quot;), state(&quot;CA&quot;), zip(&quot;95199&quot;)).result
+  insert(id(49), name(&quot;Superior Coffee&quot;), street(&quot;1 Party Place&quot;),
+    city(&quot;Mendocino&quot;), state(&quot;CA&quot;), zip(&quot;95460&quot;)).result
+}</code></pre><p>If we don't call <code>result</code>, we will just create the query without ever executing it. Please note that <code>result</code> must be called within the session.</p><p>There is also a shorthand when using values in order:</p><pre class="sourceCode scala"><code>import ExampleDatastore._
+import suppliers._
+
+session {
+  insertInto(suppliers, 150, &quot;The High Ground&quot;, &quot;100 Coffee Lane&quot;,
+    &quot;Meadows&quot;, &quot;CA&quot;, &quot;93966&quot;).result
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>-1</code></pre><p>The database returns -1 as the ID is already known. </p><div><b>Todo:</b> Can we return 150 instead?</div><p>If you want to insert multiple rows at the same time, you can use a batch insertion:
+
+    </p><pre class="sourceCode scala"><code>import ExampleDatastore._
+import coffees._
+
+session {
+  insert(name(&quot;Colombian&quot;), supID(101), price(7.99), sales(0), total(0), rating(Some(0.5))).
+    and(name(&quot;French Roast&quot;), supID(49), price(8.99), sales(0), total(0), rating(Some(0.3))).
+    and(name(&quot;Espresso&quot;), supID(150), price(9.99), sales(0), total(0), rating(None)).
+    and(name(&quot;Colombian Decaf&quot;), supID(101), price(8.99), sales(0), total(0), rating(Some(0.2))).
+    and(name(&quot;French Roast Decaf&quot;), supID(49), price(9.99), sales(0), total(0), rating(None)).result
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>List()</code></pre><div><b>Todo:</b> Deprecate this syntax?</div><p>This is very similar to the previous insert method, except instead of calling <code>result</code> we're calling <code>and</code>. This converts the insert into a batch insert and you gain the performance of being able to insert several records with one insert statement.</p><p>You can also pass a <code>Seq</code> to <code>insertBatch</code>, which is useful if the rows are loaded from a file for example.</p><h2 id="querying">Querying</h2><p>The DSL for querying a table is similar to SQL:
+
+    </p><pre class="sourceCode scala"><code>import ExampleDatastore._
+import coffees._
+
+session {
+  val query = select (*) from coffees
+
+  query.result.map { r =&gt;
+    s&quot;${r(name)}\t${r(supID)}\t${r(price)}\t${r(sales)}\t${r(total)}&quot;
+  }.mkString(&quot;\n&quot;)
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>Colombian	101	7.99	0	0
+French Roast	49	8.99	0	0
+Espresso	150	9.99	0	0
+Colombian Decaf	101	8.99	0	0
+French Roast Decaf	49	9.99	0	0</code></pre><p>Joins are supported too. In the following example we query all coffees back filtering and joining with suppliers:
+
+    </p><pre class="sourceCode scala"><code>import ExampleDatastore._
+import coffees._
+
+session {
+  val query = (select(coffees.name, suppliers.name)
+    from coffees
+    innerJoin suppliers on coffees.supID === suppliers.id
+    where coffees.price &lt; 9.0)
+
+  query.result.map { r =&gt;
+    s&quot;Coffee: ${r(coffees.name)}, Supplier: ${r(suppliers.name)}&quot;
+  }.mkString(&quot;\n&quot;)
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>Coffee: Colombian, Supplier: Acme, Inc.
+Coffee: French Roast, Supplier: Superior Coffee
+Coffee: Colombian Decaf, Supplier: Acme, Inc.</code></pre><h2 id="remarks">Remarks</h2><p>You may have noticed the striking similarity between this code and Slick's introductory tutorial. This was done purposefully to allow better comparison of functionality between the two frameworks.</p><p>An auto-incrementing ID has been introduced into both tables to better represent the standard development scenario. Rarely you have external IDs to supply to your database like <a href="http://slick.typesafe.com/doc/3.0.0/gettingstarted.html#schema">Slick represents</a>.</p>
+<h1 id="mapper">Mapper</h1><p>The mapper module provides functionality to map table rows when persisting or selecting rows.
+
+  </p><h2 id="sbt-dependency">sbt dependency</h2><p>We must first add another dependency to our build file:
+
+    </p><pre class="sourceCode scala"><code>libraryDependencies += &quot;org.scalarelational&quot; % &quot;scalarelational-mapper_2.11&quot; % &quot;1.1.0-SNAPSHOT&quot;</code></pre><h2 id="library-imports-1">Library imports</h2><p>For the mapper you need the following additional imports:
+
+    </p><pre class="sourceCode scala"><code>import org.scalarelational.mapper.{Entity, MappedTable}</code></pre><h2 id="table-definition">Table definition</h2><p>When defining a table definition with the mapper, the key difference is that you need to use <code>MappedTable</code>  and supply the <code>case class</code> you want to map it to. We change the example from the previous chapter to:</p><pre class="sourceCode scala"><code>object MapperDatastore extends H2Datastore(mode = H2Memory(&quot;mapper&quot;)) {
+  object suppliers extends MappedTable[Supplier](&quot;SUPPLIERS&quot;) {
+    val name = column[String](&quot;SUP_NAME&quot;, Unique)
+    val street = column[String](&quot;STREET&quot;)
+    val city = column[String](&quot;CITY&quot;)
+    val state = column[Option[String], String](&quot;STATE&quot;)
+    val zip = column[String](&quot;ZIP&quot;)
+    val status = column[Status, String](&quot;STATUS&quot;)
+    val id = column[Option[Int], Int](&quot;SUP_ID&quot;, PrimaryKey, AutoIncrement)
+  }
+
+  object coffees extends MappedTable[Coffee](&quot;COFFEES&quot;) {
+    val name = column[String](&quot;COF_NAME&quot;, Unique)
+    val supID = column[Ref[Supplier], Int](&quot;SUP_ID&quot;, new ForeignKey(suppliers.id))
+    val price = column[Double](&quot;PRICE&quot;)
+    val sales = column[Int](&quot;SALES&quot;)
+    val total = column[Int](&quot;TOTAL&quot;)
+    val id = column[Option[Int], Int](&quot;COF_ID&quot;, PrimaryKey, AutoIncrement)
+  }
+}</code></pre><p>You may have noticed that the supplier ID in <code>coffees</code> now has a type-safe reference. The second type argument of <code>colum</code> denotes the underlying SQL type, which in case of foreign keys is an integer.</p><div><b>Todo:</b> What about non-integer FKs?</div><p>We also added a new field <code>status</code> to show how the following enumeration can be used in a table:</p><pre class="sourceCode scala"><code>sealed abstract class Status extends EnumEntry
+
+object Status extends Enumerated[Status] {
+  case object Unconfirmed extends Status
+  case object Disabled extends Status
+  case object Enabled extends Status
+
+  val values = findValues.toVector
+}</code></pre><h3 id="creating-table">Creating table</h3><p>As previously, create the tables using <code>create</code>:</p><pre class="sourceCode scala"><code>import MapperDatastore._
+
+session {
+  create(suppliers, coffees)
+}</code></pre><h2 id="entities">Entities</h2><p>Along with the table definition, you have to declare an accompanying <code>case class</code>, which is called <i>entity</i>. An entity needs to contain exactly the same columns as the table and the columns must have the same types.</p><p>A <code>case class</code> needs to extend from <code>Entity</code>. Furthermore, it needs to define the table that the columns map to.</p><pre class="sourceCode scala"><code>case class Supplier(name: String,
+                    street: String,
+                    city: String,
+                    state: Option[String],
+                    zip: String,
+                    status: Status,
+                    id: Option[Int] = None) extends Entity[Supplier] {
+  def columns = mapTo[Supplier](MapperDatastore.suppliers)
+}
+
+case class Coffee(name: String,
+                  supID: Ref[Supplier],
+                  price: Double,
+                  sales: Int,
+                  total: Int,
+                  id: Option[Int] = None) extends Entity[Coffee] {
+  def columns = mapTo[Coffee](MapperDatastore.coffees)
+}</code></pre><p>Though all of these fields are in the same order as the table, this is not required to be the case. Mapping takes place based on the field name to the column name in the table, so order doesn't matter.
+  </p><h2 id="insert">Insert</h2><p>We've create a <code>Supplier</code> case class, but now we need to create an instance and insert it into the database:</p><pre class="sourceCode scala"><code>import MapperDatastore._
+session {
+  val starbucks = Supplier(&quot;Starbucks&quot;, &quot;123 Everywhere Rd.&quot;, &quot;Lotsaplaces&quot;,
+    Some(&quot;CA&quot;), &quot;93966&quot;, Status.Enabled)
+  starbucks.insert.result
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>1</code></pre><p>It is worth noting here that the result is the database-generated primary key.</p><p>Now define some global IDs first that we will use throughout this chapter:</p><pre class="sourceCode scala"><code>object Ids {
+  var acmeId: Int = _
+  var superiorCoffeeId: Int = _
+  var theHighGroundId: Int = _
+}</code></pre><p>And insert some suppliers:
+
+    </p><pre class="sourceCode scala"><code>import MapperDatastore._
+import suppliers._
+import Ids._
+
+transaction {
+  // Clean and type-safe inserts
+  acmeId = insert(name(&quot;Acme, Inc.&quot;), street(&quot;99 Market Street&quot;),
+    city(&quot;Groundsville&quot;), state(Some(&quot;CA&quot;)), status(Status.Unconfirmed),
+    zip(&quot;95199&quot;)).result
+  superiorCoffeeId = insert(name(&quot;Superior Coffee&quot;), street(&quot;1 Party Place&quot;),
+    city(&quot;Mendocino&quot;), zip(&quot;95460&quot;), status(Status.Unconfirmed)).result
+
+  // Short-hand when using values in order - we exclude the id since it
+  // will be generated by the database
+  theHighGroundId = insertInto(suppliers, &quot;The High Ground&quot;, &quot;100 Coffee Lane&quot;,
+    &quot;Meadows&quot;, Some(&quot;CA&quot;), &quot;93966&quot;, Status.Unconfirmed).result
+
+  (acmeId, superiorCoffeeId, theHighGroundId)
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>(2,3,4)</code></pre><p>Two insert styles are represented here. The first uses the column to wrap around a value to instantiate the column with a value. This provides a clean way of inserting the exact values you need and excluding values you want defaulted.</p><p>The second representation uses <code>insertInto</code> and takes the <code>Table</code> as the first argument followed by the values to be inserted. For <code>insertInto</code> the items must be added in the same order as they are defined in your Table. This second method is provided mostly for people coming from Slick as it provides a very similar approach, but the first method is preferred as there is no ambiguity of what value maps to what column and offers greater inserting flexibility.</p><p>The last thing to notice here is that instead of a <code>session</code> we are using a <code>transaction</code>. Because we are inserting multiple suppliers we want to make sure everything inserts properly or rolls the entire transaction back. You can use <code>transaction</code> instead of <code>session</code> as a <code>transaction</code> establishes a <code>session</code> if one does not already exist.</p><h2 id="batch-inserting">Batch inserting</h2><p>Now that we have some suppliers, we need to add some coffees as well:
+
+    </p><pre class="sourceCode scala"><code>import MapperDatastore._
+import coffees._
+import Ids._
+
+session {
+  insert(name(&quot;Colombian&quot;), supID(Ref[Supplier](acmeId)), price(7.99), sales(0), total(0)).
+    and(name(&quot;French Roast&quot;), supID(Ref[Supplier](superiorCoffeeId)), price(8.99), sales(0), total(0)).
+    and(name(&quot;Espresso&quot;), supID(Ref[Supplier](theHighGroundId)), price(9.99), sales(0), total(0)).
+    and(name(&quot;Colombian Decaf&quot;), supID(Ref[Supplier](acmeId)), price(8.99), sales(0), total(0)).
+    and(name(&quot;French Roast Decaf&quot;), supID(Ref[Supplier](superiorCoffeeId)), price(9.99), sales(0), total(0)).result
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>List(5)</code></pre><div><b>Todo:</b> Why does it return 5 in a <code>List</code>?</div><p>Note that we need to use type-safe references for the suppliers.
+  </p><h2 id="query">Query</h2><p>We've successfully inserted our <code>Supplier</code> instance. The syntax for querying it back out is similar to SQL:</p><pre class="sourceCode scala"><code>import MapperDatastore._
+import suppliers._
+
+session {
+  val query = select (*) from suppliers where name === &quot;Starbucks&quot;
+  query.to[Supplier].result.head()
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>Supplier(Starbucks,123 Everywhere Rd.,Lotsaplaces,Some(CA),93966,Enabled,Some(1))</code></pre><p>The mapper will automatically match column names in the results to fields in the <code>case class</code> provided. Every query can have its own class for convenience mapping.</p><h3 id="using-references">Using references</h3><p>Use <code>ref</code> on a table definition to obtain its reference. It can then be used in queries and compared to foreign key columns like <code>supID</code>.</p><pre class="sourceCode scala"><code>import MapperDatastore._
+session {
+  val query = (
+    select (coffees.name, suppliers.name)
+      from coffees
+      innerJoin suppliers
+      on coffees.supID === suppliers.ref
+  )
+  query.result.toList.mkString(&quot;\n&quot;)
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>COFFEES(COF_NAME: Colombian, SUP_NAME: Acme, Inc.)
+COFFEES(COF_NAME: French Roast, SUP_NAME: Superior Coffee)
+COFFEES(COF_NAME: Espresso, SUP_NAME: The High Ground)
+COFFEES(COF_NAME: Colombian Decaf, SUP_NAME: Acme, Inc.)
+COFFEES(COF_NAME: French Roast Decaf, SUP_NAME: Superior Coffee)</code></pre><h3 id="using-joins">Using joins</h3><p>Joins are one of the major points where ScalaRelational diverges from other frameworks that have a concept of an ORM:
+
+      </p><pre class="sourceCode scala"><code>import MapperDatastore._
+session {
+  val query = (
+    select (coffees.* ::: suppliers.*)
+    from coffees
+    innerJoin suppliers
+    on (coffees.supID === suppliers.ref)
+    where coffees.name === &quot;French Roast&quot;
+  )
+
+  val (frenchRoast, superior) =
+    query.to[Coffee, Supplier](coffees, suppliers).result.head()
+  s&quot;Coffee: $frenchRoast\nSupplier: $superior&quot;
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>Coffee: Coffee(French Roast,3,8.99,0,0,Some(2))
+Supplier: Supplier(Superior Coffee,1 Party Place,Mendocino,None,95460,Unconfirmed,Some(3))</code></pre><p>This is an efficient SQL query to join the <code>coffees</code> table with the <code>suppliers</code> table and get back a single result set. Using the mapper we are able to separate the columns relating to <code>coffees</code> from <code>suppliers</code> and map them directly to our <code>case class</code>es.</p><h2 id="polymorphic-tables">Polymorphic tables</h2><p>It may be desired to represent a type hierarchy in a single table for better performance:
+
+    </p><pre class="sourceCode scala"><code>trait User {
+  def name: String
+  def id: Option[Int]
+}
+
+case class UserGuest(name: String, id: Option[Int] = None)
+  extends User with Entity[UserGuest]
+{
+  def columns = mapTo[UserGuest](users)
+  val isGuest = true
+}
+
+case class UserAdmin(name: String, canDelete: Boolean, id: Option[Int] = None)
+  extends User with Entity[UserAdmin]
+{
+  def columns = mapTo[UserAdmin](users)
+  val isGuest = false
+}
+
+object users extends MappedTable[User](&quot;users&quot;)(MapperDatastore) {
+  val id = column[Option[Int], Int](&quot;id&quot;, PrimaryKey, AutoIncrement)
+  val name = column[String](&quot;name&quot;)
+  val canDelete = column[Boolean](&quot;canDelete&quot;, Polymorphic)
+  val isGuest = column[Boolean](&quot;isGuest&quot;)
+}</code></pre><p>Create the tables:
+
+    </p><pre class="sourceCode scala"><code>import MapperDatastore._
+
+session {
+  create(users)
+}</code></pre><p>Now you can insert a heterogeneous list of entities:
+
+    </p><pre class="sourceCode scala"><code>val insertUsers = Seq(
+  UserGuest(&quot;guest&quot;),
+  UserAdmin(&quot;admin&quot;, true)
+)
+
+import MapperDatastore._
+
+session {
+  insertUsers.foreach(_.insert.result)
+}</code></pre><p>To query the table, you will need to evaluate the column which encodes the original type of the object, namely <code>isGuest</code> in this case. For more complex type hierarchies you may want to use an enumeration instead of a boolean flag.</p><pre class="sourceCode scala"><code>import MapperDatastore._
+val query = users.q from users
+
+val x = query.asCase[User] { row =&gt;
+  if (row(users.isGuest)) classOf[UserGuest]
+  else classOf[UserAdmin]
+}
+
+session {
+  x.result.converted.toList.mkString(&quot;\n&quot;)
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>UserGuest(guest,Some(1))
+UserAdmin(admin,true,Some(2))</code></pre>
+<h1 id="querying-1">Querying</h1><h2 id="session-management">Session management</h2><p>All database queries must take place within a <i>session</i>. The session manages the database connection on your behalf.</p><p>Sessions within sessions are valid. ScalaRelational will ignore inner-session creation and only maintain a connection for the outermost session. Additionally, sessions are lazy and will only open a connection when one is needed, so it is perfectly acceptable to wrap blocks of code that may or may not access the database without being concerned about the performance implications.
+  </p><h2 id="transactions">Transactions</h2><p>Sessions should not be confused with <i>transactions</i>. A session simply manages the connection whereas a transaction disables <a href="https://en.wikipedia.org/wiki/Autocommit">autocommit</a> and automatically rolls back if an error occurs while executing.</p><h2 id="select">Select</h2><p>We will re-use the database from the previous chapter.</p><p>We've finished inserting data now, so lets start querying some data back out. We'll start by simply iterating over the coffees in the database and printing them out:</p><pre class="sourceCode scala"><code>import MapperDatastore._
+import coffees._
+
+session {
+  val query = select (*) from coffees
+  query.result.toList.map { r =&gt;
+    s&quot;${r(name)}\t${r(supID)}\t${r(price)}\t${r(sales)}\t${r(total)}&quot;
+  }
+}.mkString(&quot;\n&quot;)</code></pre><b>Output:</b><pre class="sourceCode"><code>Colombian	2	7.99	0	0
+French Roast	3	8.99	0	0
+Espresso	4	9.99	0	0
+Colombian Decaf	2	8.99	0	0
+French Roast Decaf	3	9.99	0	0</code></pre><p><code>toList</code> is necessary because <code>result</code> returns a <code>QueryResultsIterator</code> which streams from the database and expects an active session. If you plan to use the rows outside of the session you must convert them to a concrete sequence first.</p><p>It is worthwhile to notice that our query looks exactly like a SQL query, but it is Scala code using ScalaRelational's DSL to provide this. Most of the time SQL queries in ScalaRelational look exactly the same as in SQL, but there are a few more complex scenarios where this is not the case or even not preferred.</p><h3 id="joining">Joining</h3><p>Now that we've seen a basic query example, let's look at a more advanced scenario. We will query all coffees filtering and joining with suppliers:
+
+      </p><pre class="sourceCode scala"><code>import MapperDatastore._
+session {
+  val query = (
+    select (coffees.name, suppliers.name)
+    from coffees
+    innerJoin suppliers
+    on coffees.supID === suppliers.ref
+    where coffees.price &lt; 9.0
+  )
+
+  query.result.toList.map { r =&gt;
+    s&quot;Coffee: ${r(coffees.name)}, Supplier: ${r(suppliers.name)}&quot;
+  }.mkString(&quot;\n&quot;)
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>Coffee: Colombian, Supplier: Acme, Inc.
+Coffee: French Roast, Supplier: Superior Coffee
+Coffee: Colombian Decaf, Supplier: Acme, Inc.</code></pre><p>You can see here that though this query looks very similar to an SQL query there are some slight differences. This is the result of Scala's limitations for writing DSLs. For example, we must use three equal signs (<code>===</code>) instead of two.</p><p>ScalaRelational tries to retain type information where possible, and though loading data by columns is clean, we can actually extract a <code>(String, String)</code> tuple representing the coffee name and suppliers name:</p><pre class="sourceCode scala"><code>query.result.toList.map { r =&gt;
+  val (coffeeName, supplierName) = r()
+  s&quot;Coffee: $coffeeName, Supplier: $supplierName&quot;
+}</code></pre><p>This is possible because the DSL supports explicit argument lists and retains type information all the way through to the result.
+    </p><h2 id="update">Update</h2><p>This is an example for updating a row:
+
+    </p><pre class="sourceCode scala"><code>val query = update (name(&quot;updated name&quot;)) where id === 1
+query.result</code></pre><h2 id="delete">Delete</h2><p>In analogy to updating rows, a deletion looks as follows:
+
+    </p><pre class="sourceCode scala"><code>val query = delete (triggerTest) where triggerTest.id === 1
+query.result</code></pre><h2 id="sql-functions">SQL functions</h2><p>ScalaRelational supports SQL functions such as <code>avg</code>. These are defined directly on the columns.</p><pre class="sourceCode scala"><code>import coffees._
+  session {
+    (select (rating.avg) from coffees)
+      .result.one(rating.avg).get
+  }</code></pre>
+<h1 id="table-definition-1">Table definition</h1><div><b>Todo:</b> Check and complete chapter</div><h2 id="mapper-1">Mapper</h2><p>See the chapter <a href="#mapper">Mapper</a> for more information.</p><h2 id="column-types">Column types</h2><h3 id="references">References</h3><p>References are a type-safe abstraction for foreign keys:
+
+      </p><pre class="sourceCode scala"><code>val supID = column[Ref[Supplier], Int](&quot;SUP_ID&quot;, new ForeignKey(suppliers.id))</code></pre><p>You can call <code>ref</code> on every table to obtain its reference.</p><h3 id="option">Option</h3><p>We prevent <code>null</code> pointers by introducing an optional column type:</p><pre class="sourceCode scala"><code>val id = column[Option[Int], Int](&quot;COF_ID&quot;, PrimaryKey, AutoIncrement)</code></pre><p>The second type parameter denotes the underlying SQL type.</p><p>You can call <code>opt</code> on every column to obtain its values wrapped in an optional column type. This is sometimes necessary when comparing an optional column with a non-optional column in a query:</p><pre class="sourceCode scala"><code>val query = (
+  select (*)
+  from coffees
+  innerJoin suppliers
+  on suppliers.id === supID.opt
+)</code></pre><h3 id="enumeration">Enumeration</h3><p>You need these two imports:
+
+      </p><pre class="sourceCode scala"><code>import org.powerscala.enum.{EnumEntry, Enumerated}</code></pre><p>An enumeration may look like:
+
+      </p><pre class="sourceCode scala"><code>sealed abstract class Status extends EnumEntry
+
+object Status extends Enumerated[Status] {
+  case object Disabled extends Status
+  case object Enabled extends Status
+
+  val values = findValues.toVector
+}</code></pre><p>Use the enumeration in a column like this:
+
+      </p><pre class="sourceCode scala"><code>val status = column[Status, String](&quot;STATUS&quot;)</code></pre><p>The underlying SQL type of enumerations is a string.
+    </p><h3 id="blobs">Blobs</h3><p>A column serialising an object looks as follows:
+
+      </p><pre class="sourceCode scala"><code>val fruit = column[Fruit, Blob](&quot;fruit&quot;,
+  ObjectSerializationDataTypeCreator.create[Fruit])</code></pre><p>There is also an untyped <code>Blob</code> column type:</p><pre class="sourceCode scala"><code>val content = column[Blob](&quot;content&quot;)</code></pre><h3 id="custom-column-type">Defining a custom type</h3><div><b>Todo:</b> Write section</div><h2 id="column-properties">Column properties</h2><h3 id="unique-values">Unique values</h3><p>Example:
+
+      </p><pre class="sourceCode scala"><code>val name = column[String](&quot;name&quot;, Unique)</code></pre><h3 id="custom-column-length">Custom column length</h3><p>The pre-defined column types use heuristic values for the default column lengths. It may happen that the default value is not a good fit. You can change this by passing the column property <code>ColumnLength</code>:</p><pre class="sourceCode scala"><code>val name = column[String](&quot;name&quot;, ColumnLength(200))</code></pre><h2 id="versioning">Versioning</h2><p>Add <code>with VersioningSupport</code> to your datastore definition and define a new upgrade instance for every new version:</p><pre class="sourceCode scala"><code>object Upgrade4 extends UpgradableVersion {
+  override def version = 4
+  override def upgrade() = {
+    import VersioningDatastore._
+
+    createTable(&quot;test&quot;).
+      and(createColumn[Int](&quot;test2&quot;, &quot;id&quot;, PrimaryKey, AutoIncrement)).
+      and(createColumn[String](&quot;test2&quot;, &quot;name&quot;)).
+      and(createColumn[Option[Int], Int](&quot;test2&quot;, &quot;age&quot;)).result
+  }
+}</code></pre><div><b>Todo:</b> We have to describe the table creation DSL</div><p>Within the datastore, call <code>register</code> for all upgrade objects:</p><pre class="sourceCode scala"><code>register(Upgrade3)
+register(Upgrade4)</code></pre><p>To obtain the current version, use <code>version()</code>. To upgrade to the latest version, call <code>upgrade()</code> in a session.</p><h1 id="architecture">Architecture</h1><div><b>Todo:</b> Complete</div><p>This chapter discusses the architecture of ScalaRelational.
+
+  </p><h2 id="jdbc">JDBC</h2><p>All underlying drivers are provided by JDBC. The drivers are blocking.
+  </p><h2 id="macros">Macros</h2><p>Internally macros are used instead of <i>reflection</i> for performance-critical areas.</p><h1 id="ch-database-support">Database support</h1><p>This chapter discusses ScalaRelational's database support.
+
+  </p><h2 id="compatibility">Compatibility</h2><p>The following versions have been tested:
+
+    </p><table><thead><tr class="header"><th>Database</th><th>Version</th><th>sbt dependency</th></tr></thead><tbody><tr class="even"><td>H2</td><td>v1.4.187</td><td><code>scalarelational-h2</code></td></tr><tr class="odd"><td>MariaDB/MySQL</td><td>v5.1.36</td><td><code>scalarelational-mariadb</code></td></tr></tbody></table><h2 id="h2">H2</h2><p>For better performance, <a href="http://brettwooldridge.github.io/HikariCP/">HikariCP</a> is supported. Add the <code>HikariSupport</code><i>trait</i> to your <code>H2Datastore</code>.</p><h2 id="mariadb/mysql">MariaDB/MySQL</h2><p>This library is guaranteed to work with MariaDB. MySQL is supported for the most part, but without any guarantee.</p><p>MariaDB and MySQL have a row size limit. If you don't set a <code>ColumnLength</code> for <code>VARCHAR</code> (i.e. <code>String</code>) explicitly, <code>ColumnLength(200)</code> will be used. You can globally override the default length in the <code>Datastore</code> as follows:</p><pre class="sourceCode scala"><code>object GettingStartedDatastore extends MariaDBDatastore(config) {
+  override def DefaultVarCharLength = 200
+
+  object suppliers extends MappedTable[Supplier](&quot;SUPPLIERS&quot;) {
+    val name = column[String](&quot;SUP_NAME&quot;, Unique)
+    ...
+  }
+}</code></pre><p>Alternatively, you can specify a custom length for some selected columns (see <a href="#custom-column-length">this section</a>).</p><p>Please note that unlike MariaDB, MySQL does not support the clause <code>CREATE INDEX IF NOT EXISTS</code>.</p><div><b>Todo:</b> What are the consequences?</div>
+<h1 id="support">Support</h1><h2 id="test-cases">Test cases</h2><p>Although this manual strives to be comprehensive, please also check the test cases if you encounter any problems or find the examples provided here lacking.
+	</p><h2 id="links">Links</h2><p>For support, you may also visit our <a href="test">Gitter channel</a>.</p><div><b>Todo:</b> Do we want to provide it?</div><p>Bugs should be reported in the <a href="https://github.com/outr/scalarelational/issues">GitHub issue tracker</a>.</p><h1 id="contributing">Contributing</h1><p>If you see any potential for improvement, please open an issue first and discuss your ideas with us. We might be able to provide some guidance.
+
+  </p><h2 id="manual">Manual</h2><p>If you find mistakes or missing information in the manual, please let us know <a href="#">here</a>.</p><div><b>Todo:</b> Add correct link to GitHub issues</div><h2 id="developing">Developing</h2><p>Check out the repository:
+
+    </p><pre class="sourceCode shell"><code>git clone git@github.com:outr/scalarelational.git</code></pre><p>If you add a new feature or found a bug, we would appreciate if you also add test cases to test the functionality.
+  </p><h2 id="committing">Committing</h2><p>Fork our <a href="https://github.com/outr/scalarelational">Git repository</a> and commit your changes on a new branch. As for the Git messages, please make sure to use the following format:</p><pre class="sourceCode shell"><code>${Area where the changes were made}: ${Short description}
+
+${Long description}</code></pre><p>Try not to exceed 50 characters in the first line and 72 in the long description. See <a href="http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html">this page</a> for more information.</p><p>After you're done, <a href="https://help.github.com/articles/creating-a-pull-request/">submit a pull request</a>.</p><h2 id="license">License</h2><p>Beware that once your changes have been accepted, they will be incorporated in the source code under the terms of the <a href="http://opensource.org/licenses/MIT">MIT License</a>.</p><h2 id="releases">Releases</h2><div><b>Todo:</b> Describe release cycle</div><h1 id="appendix:-changelog">Appendix: Changelog</h1><div><b>Todo:</b> Add changelog</div><h1 id="appendix:-benchmarks">Appendix: Benchmarks</h1><p>As you can see from the results below, the performance in ScalaRelational is significantly better than that of Slick. We will be adding additional tests and additional frameworks in the future.</p><p>Please refer to the <a href="https://github.com/outr/scalarelational-benchmarks">benchmark project</a> for more information.</p><img src="http://captiveimagination.com/download/SlickComparison01.png?2"/><img src="http://captiveimagination.com/download/SlickComparison02.png?2"/><img src="http://captiveimagination.com/download/SlickComparison03.png?2"/><img src="http://captiveimagination.com/download/SlickComparison04.png?2"/><h1 id="appendix:-license">Appendix: License</h1><p>Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the &quot;Software&quot;), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+</p>
+
+          <p><small>Generated with <a href="http://github.com/MetaStack-pl/MetaDocs">MetaDocs</a>.</small></p>
+        </div>
+      </body>
+    </html>

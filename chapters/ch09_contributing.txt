@@ -1,0 +1,39 @@
+chapter[Contributing] {
+  If you see any potential for improvement, please open an issue first and discuss your ideas with us. We might be able to provide some guidance.
+
+  section[Manual] {
+    If you find mistakes or missing information in the manual, please let us know url[#]{here}. todo{Add correct link to GitHub issues}
+  }
+
+  section[Developing] {
+    Check out the repository:
+
+    shell {*
+      git clone git@github.com:outr/scalarelational.git
+    *}
+
+    If you add a new feature or found a bug, we would appreciate if you also add test cases to test the functionality.
+  }
+
+  section[Committing] {
+    Fork our url[https://github.com/outr/scalarelational]{Git repository} and commit your changes on a new branch. As for the Git messages, please make sure to use the following format:
+
+    shell {*
+      ${Area where the changes were made}: ${Short description}
+
+      ${Long description}
+    *}
+
+    Try not to exceed 50 characters in the first line and 72 in the long description. See url[http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html]{this page} for more information.
+
+    After you're done, url[https://help.github.com/articles/creating-a-pull-request/]{submit a pull request}.
+  }
+
+  section[License] {
+    Beware that once your changes have been accepted, they will be incorporated in the source code under the terms of the url[http://opensource.org/licenses/MIT]{MIT License}.
+  }
+
+  section[Releases] {
+    todo{Describe release cycle}
+  }
+}

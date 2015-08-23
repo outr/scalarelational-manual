@@ -1,0 +1,12 @@
+chapter[Architecture] {
+  todo{Complete}
+  This chapter discusses the architecture of ScalaRelational.
+
+  section[JDBC] {
+    All underlying drivers are provided by JDBC. The drivers are blocking.
+  }
+
+  section[Macros] {
+    Internally macros are used instead of i{reflection} for performance-critical areas.
+  }
+}

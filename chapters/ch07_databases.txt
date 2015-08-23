@@ -1,0 +1,50 @@
+chapter[id=ch-database-support,title=Database support] {
+  This chapter discusses ScalaRelational's database support.
+
+  section[Compatibility] {
+    The following versions have been tested:
+
+    table[header=yes] {
+      row {
+        column{Database}
+        column{Version}
+        column{sbt dependency}
+      }
+      row {
+        column{H2}
+        column{v1.4.187}
+        column{code{scalarelational-h2}}
+      }
+      row {
+        column{MariaDB/MySQL}
+        column{v5.1.36}
+        column{code{scalarelational-mariadb}}
+      }
+    }
+  }
+
+  section[H2] {
+    For better performance, url[http://brettwooldridge.github.io/HikariCP/]{HikariCP} is supported. Add the code{HikariSupport} i{trait} to your code{H2Datastore}.
+  }
+
+  section[MariaDB/MySQL] {
+    This library is guaranteed to work with MariaDB. MySQL is supported for the most part, but without any guarantee.
+
+    MariaDB and MySQL have a row size limit. If you don't set a code{ColumnLength} for code{VARCHAR} (i.e. code{String}) explicitly, code{ColumnLength(200)} will be used. You can globally override the default length in the code{Datastore} as follows:
+
+    scala {*
+      object GettingStartedDatastore extends MariaDBDatastore(config) {
+        override def DefaultVarCharLength = 200
+
+        object suppliers extends MappedTable[Supplier]("SUPPLIERS") {
+          val name = column[String]("SUP_NAME", Unique)
+          ...
+        }
+      }
+    *}
+
+    Alternatively, you can specify a custom length for some selected columns (see jump[custom-column-length]{this section}).
+
+    Please note that unlike MariaDB, MySQL does not support the clause code{CREATE INDEX IF NOT EXISTS}. todo{What are the consequences?}
+  }
+}
