@@ -61,10 +61,10 @@ chapter[Introduction] {
       item{Modular design}
       item{Optimised for speed}
       item{Extensible API to allow other frameworks to build on top of the existing functionality}
-      item{Mapping to and from case classes}
+      item{Mapping to and from code{case class}es}
       item{Polymorphic model support}
       item{Database versioning and upgrades}
-      item{Powerful DSL for DDL generation and manipulation}
+      item{DSL for DDL generation and manipulation}
     }
 
     subsection[Database support] {
