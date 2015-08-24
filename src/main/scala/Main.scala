@@ -1,7 +1,7 @@
 import java.io.File
 
-import pl.metastack.metadocs.document.{Meta, Document}
-import pl.metastack.metadocs.document.writer.{SbtScala, HTMLDocument}
+import pl.metastack.metadocs.document._
+import pl.metastack.metadocs.document.writer._
 import pl.metastack.metadocs.input._
 
 object Main {
@@ -11,6 +11,7 @@ object Main {
       title = "ScalaRelational User Manual v1.1.0",
       author = "Matt Hicks, Tim Nieradzik",
       affiliation = "OUTR Technologies, LLC",
+      `abstract` = "ScalaRelational is a type-safe framework for defining, modifying, and querying SQL databases in Scala.",
       language = "en-GB"
     )
 
@@ -33,18 +34,16 @@ object Main {
     val docTree = Document.toDocumentTree(
       rawTree,
       instructionSet,
-      generateId = caption => Some(caption.map {
+      generateId = caption => Some(caption.collect {
+        case c if c.isLetterOrDigit => c
         case c if c.isSpaceChar => '-'
-        case c => c
       }.toLowerCase)
     )
 
-    // Don't include subsections
-    val toc = Document.generateTOC(docTree, maxLevel = 2)
-
-    // Explicitly print out the TOC which is useful when restructuring the document
-    println("Table of contents:")
-    println(toc)
+    // Explicitly print out all chapters/sections which is useful when
+    // restructuring the document
+    println("Document tree:")
+    println(Extractors.references(docTree))
     println()
 
     Document.printTodos(docTree)
@@ -55,10 +54,17 @@ object Main {
 
     val docTreeWithOutput = sbtScala.embedOutput(docTree)
 
-    HTMLDocument.write(docTreeWithOutput,
+    html.document.SinglePage.write(docTreeWithOutput,
       "manual.html",
       cssPath = Some("styles/kult.css"),
       meta = Some(meta),
-      toc = Some(toc))
+      toc = true,
+      tocDepth = 2)  // Don't include subsections
+
+    html.document.MultiPage.write(docTreeWithOutput,
+      "manual",
+      cssPath = Some("../styles/kult.css"),
+      meta = Some(meta),
+      tocDepth = 2)
   }
 }

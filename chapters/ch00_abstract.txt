@@ -1,3 +1,0 @@
-abstract {
-  ScalaRelational is a type-safe framework for defining, modifying, and querying SQL databases in Scala.
-}
