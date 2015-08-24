@@ -24,7 +24,7 @@ chapter[Introduction] {
 
     Unfortunately, the diverging syntax limits the readability and potential use case scenarios.
 
-    The biggest problem a framework like url[http://slick.typesafe.com/]{Slick} has is in fact its abstraction. Though it is very nice to work with a database like a Scala collection, the magic being done behind the scenes is often incredibly inefficient and you have no control to optimize your queries.
+    The biggest problem a framework like Slick has is in fact its abstraction. Though it is very nice to work with a database like a Scala collection, the magic being done behind the scenes is often incredibly inefficient and you have no control to optimize your queries.
   }
 
   section[Our approach: DSL and Mapper] {
