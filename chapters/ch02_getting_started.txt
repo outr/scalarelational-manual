@@ -5,10 +5,8 @@ chapter[Getting Started] {
     The first thing you need to do is add ScalaRelational's H2 module to your sbt project:
 
     sbt[project=h2] {
-      libraryDependencies += "org.scalarelational" % "scalarelational-h2_2.11" % "1.1.0-SNAPSHOT"
+      libraryDependencies += "org.scalarelational" %% "scalarelational-h2" % "1.1.0"
     }
-
-    todo{Why do we need to add code{_2.11}? Do we also publish for 2.10?}
 
     If you'd prefer to use another database instead, please refer to the chapter jump[ch-database-support]{}.
   }
