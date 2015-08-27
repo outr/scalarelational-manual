@@ -124,10 +124,24 @@ session {
   val query = select (c.name, c.supID, c.price, c.sales, c.total) from coffees
 
   query.result.converted.map {
-    //case (name, supID, price, sales, total) =&gt; s&quot;$name  $supID  $price  $sales  $total&quot;
-    case t =&gt; s&quot;Tuple: $t&quot;
+    case (name, supID, price, sales, total) =&gt; s&quot;$name  $supID  $price  $sales  $total&quot;
   }.mkString(&quot;\n&quot;)
-}</code></pre><b>Output:</b><pre class="sourceCode"><code>()</code></pre><p>Joins are supported too. In the following example we query all coffees back filtering and joining with suppliers:
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>Colombian  101  7.99  0  0
+French Roast  49  8.99  0  0
+Espresso  150  9.99  0  0
+Colombian Decaf  101  8.99  0  0
+French Roast Decaf  49  9.99  0  0
+Generic Coffee 1  49  6.99  0  0
+Generic Coffee 2  49  6.99  0  0
+Generic Coffee 3  49  6.99  0  0
+Generic Coffee 4  49  6.99  0  0
+Generic Coffee 5  49  6.99  0  0
+Generic Coffee 6  49  6.99  0  0
+Generic Coffee 7  49  6.99  0  0
+Generic Coffee 8  49  6.99  0  0
+Generic Coffee 9  49  6.99  0  0
+Generic Coffee 10  49  6.99  0  0
+Generic Coffee 11  49  6.99  0  0</code></pre><p>Joins are supported too. In the following example we query all coffees back filtering and joining with suppliers:
 
     </p><pre class="sourceCode scala"><code>import ExampleDatastore._
 import coffees._

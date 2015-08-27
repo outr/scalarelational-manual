@@ -202,6 +202,6 @@ chapter[Getting Started] {
   section[Remarks] {
     You may have noticed the striking similarity between this code and Slick's introductory tutorial. This was done purposefully to allow better comparison of functionality between the two frameworks.
 
-    An auto-incrementing ID has been introduced into both tables to better represent the standard development scenario. Rarely you have external IDs to supply to your database like url[http://slick.typesafe.com/doc/3.0.0/gettingstarted.html#schema]{Slick represents}.
+    An auto-incrementing ID has been introduced into both tables to better represent the standard development scenario. Rarely do you have external IDs to supply to your database like url[http://slick.typesafe.com/doc/3.0.0/gettingstarted.html#schema]{Slick represents}.
   }
 }
