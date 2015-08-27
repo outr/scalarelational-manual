@@ -15,7 +15,7 @@
 
   </p><h2 id="sbt-dependencies">sbt dependencies</h2><p>The first thing you need to do is add ScalaRelational's H2 module to your sbt project:
 
-    </p><pre class="sourceCode scala"><code>libraryDependencies += &quot;org.scalarelational&quot; % &quot;scalarelational-h2_2.11&quot; % &quot;1.1.0-SNAPSHOT&quot;</code></pre><div><b>Todo:</b> Why do we need to add <code>_2.11</code>? Do we also publish for 2.10?</div><p>If you'd prefer to use another database instead, please refer to the chapter <a href="ch-database-support.html">Database support</a>.</p><h2 id="library-imports">Library imports</h2><p>You will need the following imports:
+    </p><pre class="sourceCode scala"><code>libraryDependencies += &quot;org.scalarelational&quot; %% &quot;scalarelational-h2&quot; % &quot;1.1.0-SNAPSHOT&quot;</code></pre><p>If you'd prefer to use another database instead, please refer to the chapter <a href="ch-database-support.html">Database support</a>.</p><h2 id="library-imports">Library imports</h2><p>You will need the following imports:
 
     </p><pre class="sourceCode scala"><code>import org.scalarelational.column.property._
 import org.scalarelational.h2.{H2Datastore, H2Memory}
@@ -39,7 +39,7 @@ import org.scalarelational.table.Table</code></pre><h2 id="schema">Schema</h2><p
     val rating = column[Option[Double], Double](&quot;RATING&quot;)
     val total = column[Int](&quot;TOTAL&quot;)
   }
-}</code></pre><p>Our <code>Datastore</code> contains <code>Table</code>s and our <code>Table</code>s contain <code>Column</code>s. As for the <code>Datastore</code> we have chosen an in-memory H2 database. Every column type must have a <code>DataType</code> associated with it. You don't see it referenced above because all standard Scala types have predefined implicit conversions available <a href="#fn1" class="footnote" id="fnref1">[1]</a>. If you need to use a type that is not supported by ScalaRelational, please refer to <a href="table-definition-1.html#custom-column-type">Defining a custom type</a>.</p><h2 id="create-database">Create database</h2><p>Now that we have our schema defined in Scala, we need to create the tables in the database:
+}</code></pre><p>Our <code>Datastore</code> contains <code>Table</code>s and our <code>Table</code>s contain <code>Column</code>s. As for the <code>Datastore</code> we have chosen an in-memory H2 database. Every column type must have a <code>DataType</code> associated with it. You don't see it referenced above because all standard Scala types have predefined implicit conversions available <a href="#fn1" class="footnote" id="fnref1">[1]</a>. If you need to use a type that is not supported by ScalaRelational, please refer to <a href="table-definition-1.html#custom-column-type">Defining a custom type</a>.</p><h2 id="create-the-database">Create the database</h2><p>Now that we have our schema defined in Scala, we need to create the tables in the database:
 
     </p><pre class="sourceCode scala"><code>import ExampleDatastore._
 
@@ -50,8 +50,13 @@ session {
     ExampleDatastore.suppliers,
     ExampleDatastore.coffees
   )
-}</code></pre><p>For the sake of readability importing the datastore is generally suggested.
-    </p><h2 id="inserting">Inserting</h2><p>ScalaRelational supports type-safe insertions:
+}</code></pre><p>For the sake of readability importing the datastore is generally suggested. Although if namespace collisions are a problem you can import and alias or create a shorter reference like this:
+
+      </p><pre class="sourceCode scala"><code>val ds = ExampleDatastore
+
+session {
+  ds.create(ds.suppliers, ds.coffees)
+}</code></pre><h2 id="inserting">Inserting</h2><p>ScalaRelational supports type-safe insertions:
 
     </p><pre class="sourceCode scala"><code>import ExampleDatastore._
 import suppliers._
@@ -67,9 +72,7 @@ import suppliers._
 session {
   insertInto(suppliers, 150, &quot;The High Ground&quot;, &quot;100 Coffee Lane&quot;,
     &quot;Meadows&quot;, &quot;CA&quot;, &quot;93966&quot;).result
-}</code></pre><b>Output:</b><pre class="sourceCode"><code>-1</code></pre><p>The database returns -1 as the ID is already known. </p><div><b>Todo:</b> Can we return 150 instead?</div><p>If you want to insert multiple rows at the same time, you can use a batch insertion:
-
-    </p><pre class="sourceCode scala"><code>import ExampleDatastore._
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>-1</code></pre><p>The database returns -1 as the ID is already known.</p><p>If you want to insert multiple rows at the same time, you can use a batch insertion:</p><pre class="sourceCode scala"><code>import ExampleDatastore._
 import coffees._
 
 session {
@@ -78,7 +81,15 @@ session {
     and(name(&quot;Espresso&quot;), supID(150), price(9.99), sales(0), total(0), rating(None)).
     and(name(&quot;Colombian Decaf&quot;), supID(101), price(8.99), sales(0), total(0), rating(Some(0.2))).
     and(name(&quot;French Roast Decaf&quot;), supID(49), price(9.99), sales(0), total(0), rating(None)).result
-}</code></pre><b>Output:</b><pre class="sourceCode"><code>List()</code></pre><div><b>Todo:</b> Deprecate this syntax?</div><p>This is very similar to the previous insert method, except instead of calling <code>result</code> we're calling <code>and</code>. This converts the insert into a batch insert and you gain the performance of being able to insert several records with one insert statement.</p><p>You can also pass a <code>Seq</code> to <code>insertBatch</code>, which is useful if the rows are loaded from a file for example.</p><h2 id="querying">Querying</h2><p>The DSL for querying a table is similar to SQL:
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>List()</code></pre><p>This is very similar to the previous insert method, except instead of calling <code>result</code> we're calling <code>and</code>. This converts the insert into a batch insert and you gain the performance of being able to insert several records with one insert statement.</p><p>You can also pass a <code>Seq</code> to <code>insertBatch</code>, which is useful if the rows are loaded from a file for example:</p><pre class="sourceCode scala"><code>import ExampleDatastore._
+import coffees._
+
+session {
+  val rows = (0 to 10).map { index =&gt;
+    List(name(s&quot;Generic Coffee ${index + 1}&quot;), supID(49), price(6.99), sales(0), total(0), rating(None))
+  }
+  insertBatch(rows).result
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>List()</code></pre><h2 id="querying">Querying</h2><p>The DSL for querying a table is similar to SQL:
 
     </p><pre class="sourceCode scala"><code>import ExampleDatastore._
 import coffees._
@@ -93,7 +104,30 @@ session {
 French Roast	49	8.99	0	0
 Espresso	150	9.99	0	0
 Colombian Decaf	101	8.99	0	0
-French Roast Decaf	49	9.99	0	0</code></pre><p>Joins are supported too. In the following example we query all coffees back filtering and joining with suppliers:
+French Roast Decaf	49	9.99	0	0
+Generic Coffee 1	49	6.99	0	0
+Generic Coffee 2	49	6.99	0	0
+Generic Coffee 3	49	6.99	0	0
+Generic Coffee 4	49	6.99	0	0
+Generic Coffee 5	49	6.99	0	0
+Generic Coffee 6	49	6.99	0	0
+Generic Coffee 7	49	6.99	0	0
+Generic Coffee 8	49	6.99	0	0
+Generic Coffee 9	49	6.99	0	0
+Generic Coffee 10	49	6.99	0	0
+Generic Coffee 11	49	6.99	0	0</code></pre><p>Although that could look a little prettier by explicitly querying what we want to see:
+
+    </p><pre class="sourceCode scala"><code>import ExampleDatastore._
+import ExampleDatastore.{coffees =&gt; c}
+
+session {
+  val query = select (c.name, c.supID, c.price, c.sales, c.total) from coffees
+
+  query.result.converted.map {
+    //case (name, supID, price, sales, total) =&gt; s&quot;$name  $supID  $price  $sales  $total&quot;
+    case t =&gt; s&quot;Tuple: $t&quot;
+  }.mkString(&quot;\n&quot;)
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>()</code></pre><p>Joins are supported too. In the following example we query all coffees back filtering and joining with suppliers:
 
     </p><pre class="sourceCode scala"><code>import ExampleDatastore._
 import coffees._
@@ -109,7 +143,18 @@ session {
   }.mkString(&quot;\n&quot;)
 }</code></pre><b>Output:</b><pre class="sourceCode"><code>Coffee: Colombian, Supplier: Acme, Inc.
 Coffee: French Roast, Supplier: Superior Coffee
-Coffee: Colombian Decaf, Supplier: Acme, Inc.</code></pre><h2 id="remarks">Remarks</h2><p>You may have noticed the striking similarity between this code and Slick's introductory tutorial. This was done purposefully to allow better comparison of functionality between the two frameworks.</p><p>An auto-incrementing ID has been introduced into both tables to better represent the standard development scenario. Rarely you have external IDs to supply to your database like <a href="http://slick.typesafe.com/doc/3.0.0/gettingstarted.html#schema">Slick represents</a>.</p><div class="footnotes">
+Coffee: Colombian Decaf, Supplier: Acme, Inc.
+Coffee: Generic Coffee 1, Supplier: Superior Coffee
+Coffee: Generic Coffee 2, Supplier: Superior Coffee
+Coffee: Generic Coffee 3, Supplier: Superior Coffee
+Coffee: Generic Coffee 4, Supplier: Superior Coffee
+Coffee: Generic Coffee 5, Supplier: Superior Coffee
+Coffee: Generic Coffee 6, Supplier: Superior Coffee
+Coffee: Generic Coffee 7, Supplier: Superior Coffee
+Coffee: Generic Coffee 8, Supplier: Superior Coffee
+Coffee: Generic Coffee 9, Supplier: Superior Coffee
+Coffee: Generic Coffee 10, Supplier: Superior Coffee
+Coffee: Generic Coffee 11, Supplier: Superior Coffee</code></pre><h2 id="remarks">Remarks</h2><p>You may have noticed the striking similarity between this code and Slick's introductory tutorial. This was done purposefully to allow better comparison of functionality between the two frameworks.</p><p>An auto-incrementing ID has been introduced into both tables to better represent the standard development scenario. Rarely you have external IDs to supply to your database like <a href="http://slick.typesafe.com/doc/3.0.0/gettingstarted.html#schema">Slick represents</a>.</p><div class="footnotes">
             <hr/>
             <ol><li id="fn1">
               <p>
