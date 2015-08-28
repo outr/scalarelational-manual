@@ -5,19 +5,19 @@ chapter[id=mapper,Mapper] {
     We must first add another dependency to our build file:
 
     sbt[project=h2mapper] {
-      libraryDependencies += "org.scalarelational" % "scalarelational-mapper_2.11" % "1.1.0-SNAPSHOT"
+      libraryDependencies += "org.scalarelational" %% "scalarelational-mapper" % "1.1.0-SNAPSHOT"
     }
 
     sbt[project=h2mapper,hidden=yes] {
-      libraryDependencies += "org.scalarelational" % "scalarelational-h2_2.11" % "1.1.0-SNAPSHOT"
+      libraryDependencies += "org.scalarelational" %% "scalarelational-h2" % "1.1.0-SNAPSHOT"
     }
   }
 
   section[Library imports] {
-    For the mapper you need the following additional imports:
+    For the mapper you need the following additional import:
 
     scala[global=yes,project=h2mapper]{*
-      import org.scalarelational.mapper.{Entity, MappedTable}
+      import org.scalarelational.mapper._
     *}
 
     scala[global=yes,project=h2mapper,hidden=yes]{*
