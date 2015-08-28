@@ -49,10 +49,10 @@ object Main {
     Document.printTodos(docTree)
 
     val sbtScala = new SbtScala("projects")
-    sbtScala.createProjects(docTree)
+    val docTreeWithExternalCode = sbtScala.createProjects(docTree)
     sbtScala.runProjects(docTree)
 
-    val docTreeWithOutput = sbtScala.embedOutput(docTree)
+    val docTreeWithOutput = sbtScala.embedOutput(docTreeWithExternalCode)
 
     html.document.SinglePage.write(docTreeWithOutput,
       "manual.html",

@@ -182,21 +182,7 @@ chapter[Getting Started] {
 
     Joins are supported too. In the following example we query all coffees back filtering and joining with suppliers:
 
-    scala[project=h2,printResult=yes] {*
-      import ExampleDatastore._
-      import coffees._
-
-      session {
-        val query = (select(coffees.name, suppliers.name)
-          from coffees
-          innerJoin suppliers on coffees.supID === suppliers.id
-          where coffees.price < 9.0)
-
-        query.result.map { r =>
-          s"Coffee: ${r(coffees.name)}, Supplier: ${r(suppliers.name)}"
-        }.mkString("\n")
-      }
-    *}
+    scala[project=h2,printResult=yes,class=Snippets,section=join]{}
   }
 
   section[Remarks] {
