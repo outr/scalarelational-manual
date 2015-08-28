@@ -15,9 +15,9 @@
 
   </p><h2 id="sbt-dependency">sbt dependency</h2><p>We must first add another dependency to our build file:
 
-    </p><pre class="sourceCode scala"><code>libraryDependencies += &quot;org.scalarelational&quot; % &quot;scalarelational-mapper_2.11&quot; % &quot;1.1.0-SNAPSHOT&quot;</code></pre><h2 id="library-imports-1">Library imports</h2><p>For the mapper you need the following additional imports:
+    </p><pre class="sourceCode scala"><code>libraryDependencies += &quot;org.scalarelational&quot; %% &quot;scalarelational-mapper&quot; % &quot;1.1.0-SNAPSHOT&quot;</code></pre><h2 id="library-imports-1">Library imports</h2><p>For the mapper you need the following additional import:
 
-    </p><pre class="sourceCode scala"><code>import org.scalarelational.mapper.{Entity, MappedTable}</code></pre><h2 id="table-definition">Table definition</h2><p>When defining a table definition with the mapper, the key difference is that you need to use <code>MappedTable</code>  and supply the <code>case class</code> you want to map it to. We change the example from the previous chapter to:</p><pre class="sourceCode scala"><code>object MapperDatastore extends H2Datastore(mode = H2Memory(&quot;mapper&quot;)) {
+    </p><pre class="sourceCode scala"><code>import org.scalarelational.mapper._</code></pre><h2 id="table-definition">Table definition</h2><p>When defining a table definition with the mapper, the key difference is that you need to use <code>MappedTable</code>  and supply the <code>case class</code> you want to map it to. We change the example from the previous chapter to:</p><pre class="sourceCode scala"><code>object MapperDatastore extends H2Datastore(mode = H2Memory(&quot;mapper&quot;)) {
   object suppliers extends MappedTable[Supplier](&quot;SUPPLIERS&quot;) {
     val name = column[String](&quot;SUP_NAME&quot;, Unique)
     val street = column[String](&quot;STREET&quot;)
