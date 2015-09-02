@@ -82,7 +82,16 @@ chapter[Table definition] {
     }
 
     subsection[id=custom-column-type,Defining a custom type] {
-      todo{Write section}
+      todo{Extend section}
+      Example for storing string lists in a code{VARCHAR} column:
+
+      scala {*
+        object ListConverter extends SQLConversion[List[String], String] {
+          override def toSQL(column: ColumnLike[List[String], String], value: List[String]): String = value.mkString("|")
+          override def fromSQL(column: ColumnLike[List[String], String], value: String): List[String] = value.split('|').toList
+        }
+        implicit def listDataType = new DataType[List[String], String](Types.VARCHAR, SQLType("VARCHAR(1024)"), ListConverter)
+      *}
     }
   }
 
