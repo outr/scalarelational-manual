@@ -1,23 +1,26 @@
 <!DOCTYPE html><html lang="en-GB">
         <head>
-          <title>ScalaRelational User Manual v1.1.0</title>
+          <title>ScalaRelational User Manual v1.1.0 - Mapper</title>
           <meta charset="utf-8"/>
+          <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
           <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
           <meta name="generator" content="MetaDocs"/>
-          <link rel="stylesheet" type="text/css" href="../styles/kult.css"/>
+          <link rel="shortcut icon" href="images/favicon.ico"/>
+          
+          <link rel="stylesheet" type="text/css" href="css/kult.css"/><link rel="stylesheet" type="text/css" href="css/highlight.css"/>
         </head>
 
         <body>
           <div id="wrapper">
-            <header>
+      <header>
             <h1 class="title">ScalaRelational User Manual v1.1.0</h1>
           </header><nav><span>Previous chapter: <a href="getting-started.html">Getting Started</a></span>  |  <span>Next chapter: <a href="querying-1.html">Querying</a></span></nav><h1 id="mapper">Mapper</h1><p>The mapper module provides functionality to map table rows when persisting or selecting rows.
 
   </p><h2 id="sbt-dependency">sbt dependency</h2><p>We must first add another dependency to our build file:
 
-    </p><pre class="sourceCode scala"><code>libraryDependencies += &quot;org.scalarelational&quot; %% &quot;scalarelational-mapper&quot; % &quot;1.1.0-SNAPSHOT&quot;</code></pre><h2 id="library-imports-1">Library imports</h2><p>For the mapper you need the following additional import:
+    </p><pre class="sourceCode scala"><code data-lang="scala">libraryDependencies += &quot;org.scalarelational&quot; %% &quot;scalarelational-mapper&quot; % &quot;1.1.0-SNAPSHOT&quot;</code></pre><h2 id="library-imports-1">Library imports</h2><p>For the mapper you need the following additional import:
 
-    </p><pre class="sourceCode scala"><code>import org.scalarelational.mapper._</code></pre><h2 id="table-definition">Table definition</h2><p>When defining a table definition with the mapper, the key difference is that you need to use <code>MappedTable</code>  and supply the <code>case class</code> you want to map it to. We change the example from the previous chapter to:</p><pre class="sourceCode scala"><code>object MapperDatastore extends H2Datastore(mode = H2Memory(&quot;mapper&quot;)) {
+    </p><pre class="sourceCode scala"><code data-lang="scala">import org.scalarelational.mapper._</code></pre><h2 id="table-definition">Table definition</h2><p>When defining a table definition with the mapper, the key difference is that you need to use <code>MappedTable</code>  and supply the <code>case class</code> you want to map it to. We change the example from the previous chapter to:</p><pre class="sourceCode scala"><code data-lang="scala">object MapperDatastore extends H2Datastore(mode = H2Memory(&quot;mapper&quot;)) {
   object suppliers extends MappedTable[Supplier](&quot;SUPPLIERS&quot;) {
     val name = column[String](&quot;SUP_NAME&quot;, Unique)
     val street = column[String](&quot;STREET&quot;)
@@ -36,7 +39,7 @@
     val total = column[Int](&quot;TOTAL&quot;)
     val id = column[Option[Int], Int](&quot;COF_ID&quot;, PrimaryKey, AutoIncrement)
   }
-}</code></pre><p>You may have noticed that the supplier ID in <code>coffees</code> now has a type-safe reference. The second type argument of <code>colum</code> denotes the underlying SQL type, which in case of foreign keys is an integer.</p><div><b>Todo:</b> What about non-integer FKs?</div><p>We also added a new field <code>status</code> to show how the following enumeration can be used in a table:</p><pre class="sourceCode scala"><code>sealed abstract class Status extends EnumEntry
+}</code></pre><p>You may have noticed that the supplier ID in <code>coffees</code> now has a type-safe reference. The second type argument of <code>colum</code> denotes the underlying SQL type, which in case of foreign keys is an integer.</p><div><b>Todo:</b> What about non-integer FKs?</div><p>We also added a new field <code>status</code> to show how the following enumeration can be used in a table:</p><pre class="sourceCode scala"><code data-lang="scala">sealed abstract class Status extends EnumEntry
 
 object Status extends Enumerated[Status] {
   case object Unconfirmed extends Status
@@ -44,11 +47,11 @@ object Status extends Enumerated[Status] {
   case object Enabled extends Status
 
   val values = findValues.toVector
-}</code></pre><h3 id="creating-table">Creating table</h3><p>As previously, create the tables using <code>create</code>:</p><pre class="sourceCode scala"><code>import MapperDatastore._
+}</code></pre><h3 id="creating-table">Creating table</h3><p>As previously, create the tables using <code>create</code>:</p><pre class="sourceCode scala"><code data-lang="scala">import MapperDatastore._
 
 session {
   create(suppliers, coffees)
-}</code></pre><h2 id="entities">Entities</h2><p>Along with the table definition, you have to declare an accompanying <code>case class</code>, which is called <i>entity</i>. An entity needs to contain exactly the same columns as the table and the columns must have the same types.</p><p>A <code>case class</code> needs to extend from <code>Entity</code>. Furthermore, it needs to define the table that the columns map to.</p><pre class="sourceCode scala"><code>case class Supplier(name: String,
+}</code></pre><h2 id="entities">Entities</h2><p>Along with the table definition, you have to declare an accompanying <code>case class</code>, which is called <i>entity</i>. An entity needs to contain exactly the same columns as the table and the columns must have the same types.</p><p>A <code>case class</code> needs to extend from <code>Entity</code>. Furthermore, it needs to define the table that the columns map to.</p><pre class="sourceCode scala"><code data-lang="scala">case class Supplier(name: String,
                     street: String,
                     city: String,
                     state: Option[String],
@@ -66,18 +69,18 @@ case class Coffee(name: String,
                   id: Option[Int] = None) extends Entity[Coffee] {
   def columns = mapTo[Coffee](MapperDatastore.coffees)
 }</code></pre><p>Though all of these fields are in the same order as the table, this is not required to be the case. Mapping takes place based on the field name to the column name in the table, so order doesn't matter.
-  </p><h2 id="insert">Insert</h2><p>We've create a <code>Supplier</code> case class, but now we need to create an instance and insert it into the database:</p><pre class="sourceCode scala"><code>import MapperDatastore._
+  </p><h2 id="insert">Insert</h2><p>We've create a <code>Supplier</code> case class, but now we need to create an instance and insert it into the database:</p><pre class="sourceCode scala"><code data-lang="scala">import MapperDatastore._
 session {
   val starbucks = Supplier(&quot;Starbucks&quot;, &quot;123 Everywhere Rd.&quot;, &quot;Lotsaplaces&quot;,
     Some(&quot;CA&quot;), &quot;93966&quot;, Status.Enabled)
   starbucks.insert.result
-}</code></pre><b>Output:</b><pre class="sourceCode"><code>1</code></pre><p>It is worth noting here that the result is the database-generated primary key.</p><p>Now define some global IDs first that we will use throughout this chapter:</p><pre class="sourceCode scala"><code>object Ids {
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>1</code></pre><p>It is worth noting here that the result is the database-generated primary key.</p><p>Now define some global IDs first that we will use throughout this chapter:</p><pre class="sourceCode scala"><code data-lang="scala">object Ids {
   var acmeId: Int = _
   var superiorCoffeeId: Int = _
   var theHighGroundId: Int = _
 }</code></pre><p>And insert some suppliers:
 
-    </p><pre class="sourceCode scala"><code>import MapperDatastore._
+    </p><pre class="sourceCode scala"><code data-lang="scala">import MapperDatastore._
 import suppliers._
 import Ids._
 
@@ -97,7 +100,7 @@ transaction {
   (acmeId, superiorCoffeeId, theHighGroundId)
 }</code></pre><b>Output:</b><pre class="sourceCode"><code>(2,3,4)</code></pre><p>Two insert styles are represented here. The first uses the column to wrap around a value to instantiate the column with a value. This provides a clean way of inserting the exact values you need and excluding values you want defaulted.</p><p>The second representation uses <code>insertInto</code> and takes the <code>Table</code> as the first argument followed by the values to be inserted. For <code>insertInto</code> the items must be added in the same order as they are defined in your Table. This second method is provided mostly for people coming from Slick as it provides a very similar approach, but the first method is preferred as there is no ambiguity of what value maps to what column and offers greater inserting flexibility.</p><p>The last thing to notice here is that instead of a <code>session</code> we are using a <code>transaction</code>. Because we are inserting multiple suppliers we want to make sure everything inserts properly or rolls the entire transaction back. You can use <code>transaction</code> instead of <code>session</code> as a <code>transaction</code> establishes a <code>session</code> if one does not already exist.</p><h2 id="batch-inserting">Batch inserting</h2><p>Now that we have some suppliers, we need to add some coffees as well:
 
-    </p><pre class="sourceCode scala"><code>import MapperDatastore._
+    </p><pre class="sourceCode scala"><code data-lang="scala">import MapperDatastore._
 import coffees._
 import Ids._
 
@@ -108,13 +111,13 @@ session {
     and(name(&quot;Colombian Decaf&quot;), supID(Ref[Supplier](acmeId)), price(8.99), sales(0), total(0)).
     and(name(&quot;French Roast Decaf&quot;), supID(Ref[Supplier](superiorCoffeeId)), price(9.99), sales(0), total(0)).result
 }</code></pre><b>Output:</b><pre class="sourceCode"><code>List(5)</code></pre><div><b>Todo:</b> Why does it return 5 in a <code>List</code>?</div><p>Note that we need to use type-safe references for the suppliers.
-  </p><h2 id="query">Query</h2><p>We've successfully inserted our <code>Supplier</code> instance. The syntax for querying it back out is similar to SQL:</p><pre class="sourceCode scala"><code>import MapperDatastore._
+  </p><h2 id="query">Query</h2><p>We've successfully inserted our <code>Supplier</code> instance. The syntax for querying it back out is similar to SQL:</p><pre class="sourceCode scala"><code data-lang="scala">import MapperDatastore._
 import suppliers._
 
 session {
   val query = select (*) from suppliers where name === &quot;Starbucks&quot;
   query.to[Supplier].result.head()
-}</code></pre><b>Output:</b><pre class="sourceCode"><code>Supplier(Starbucks,123 Everywhere Rd.,Lotsaplaces,Some(CA),93966,Enabled,Some(1))</code></pre><p>The mapper will automatically match column names in the results to fields in the <code>case class</code> provided. Every query can have its own class for convenience mapping.</p><h3 id="using-references">Using references</h3><p>Use <code>ref</code> on a table definition to obtain its reference. It can then be used in queries and compared to foreign key columns like <code>supID</code>.</p><pre class="sourceCode scala"><code>import MapperDatastore._
+}</code></pre><b>Output:</b><pre class="sourceCode"><code>Supplier(Starbucks,123 Everywhere Rd.,Lotsaplaces,Some(CA),93966,Enabled,Some(1))</code></pre><p>The mapper will automatically match column names in the results to fields in the <code>case class</code> provided. Every query can have its own class for convenience mapping.</p><h3 id="using-references">Using references</h3><p>Use <code>ref</code> on a table definition to obtain its reference. It can then be used in queries and compared to foreign key columns like <code>supID</code>.</p><pre class="sourceCode scala"><code data-lang="scala">import MapperDatastore._
 session {
   val query = (
     select (coffees.name, suppliers.name)
@@ -129,7 +132,7 @@ COFFEES(COF_NAME: Espresso, SUP_NAME: The High Ground)
 COFFEES(COF_NAME: Colombian Decaf, SUP_NAME: Acme, Inc.)
 COFFEES(COF_NAME: French Roast Decaf, SUP_NAME: Superior Coffee)</code></pre><h3 id="using-joins">Using joins</h3><p>Joins are one of the major points where ScalaRelational diverges from other frameworks that have a concept of an ORM:
 
-      </p><pre class="sourceCode scala"><code>import MapperDatastore._
+      </p><pre class="sourceCode scala"><code data-lang="scala">import MapperDatastore._
 session {
   val query = (
     select (coffees.* ::: suppliers.*)
@@ -145,7 +148,7 @@ session {
 }</code></pre><b>Output:</b><pre class="sourceCode"><code>Coffee: Coffee(French Roast,3,8.99,0,0,Some(2))
 Supplier: Supplier(Superior Coffee,1 Party Place,Mendocino,None,95460,Unconfirmed,Some(3))</code></pre><p>This is an efficient SQL query to join the <code>coffees</code> table with the <code>suppliers</code> table and get back a single result set. Using the mapper we are able to separate the columns relating to <code>coffees</code> from <code>suppliers</code> and map them directly to our <code>case class</code>es.</p><h2 id="polymorphic-tables">Polymorphic tables</h2><p>It may be desired to represent a type hierarchy in a single table for better performance:
 
-    </p><pre class="sourceCode scala"><code>trait User {
+    </p><pre class="sourceCode scala"><code data-lang="scala">trait User {
   def name: String
   def id: Option[Int]
 }
@@ -171,13 +174,13 @@ object users extends MappedTable[User](&quot;users&quot;)(MapperDatastore) {
   val isGuest = column[Boolean](&quot;isGuest&quot;)
 }</code></pre><p>Create the tables:
 
-    </p><pre class="sourceCode scala"><code>import MapperDatastore._
+    </p><pre class="sourceCode scala"><code data-lang="scala">import MapperDatastore._
 
 session {
   create(users)
 }</code></pre><p>Now you can insert a heterogeneous list of entities:
 
-    </p><pre class="sourceCode scala"><code>val insertUsers = Seq(
+    </p><pre class="sourceCode scala"><code data-lang="scala">val insertUsers = Seq(
   UserGuest(&quot;guest&quot;),
   UserAdmin(&quot;admin&quot;, true)
 )
@@ -186,7 +189,7 @@ import MapperDatastore._
 
 session {
   insertUsers.foreach(_.insert.result)
-}</code></pre><p>To query the table, you will need to evaluate the column which encodes the original type of the object, namely <code>isGuest</code> in this case. For more complex type hierarchies you may want to use an enumeration instead of a boolean flag.</p><pre class="sourceCode scala"><code>import MapperDatastore._
+}</code></pre><p>To query the table, you will need to evaluate the column which encodes the original type of the object, namely <code>isGuest</code> in this case. For more complex type hierarchies you may want to use an enumeration instead of a boolean flag.</p><pre class="sourceCode scala"><code data-lang="scala">import MapperDatastore._
 val query = users.q from users
 
 val x = query.asCase[User] { row =&gt;
@@ -198,7 +201,9 @@ session {
   x.result.converted.toList.mkString(&quot;\n&quot;)
 }</code></pre><b>Output:</b><pre class="sourceCode"><code>UserGuest(guest,Some(1))
 UserAdmin(admin,true,Some(2))</code></pre>
-            <p><small>Generated with <a href="http://github.com/MetaStack-pl/MetaDocs">MetaDocs</a>.</small></p>
-          </div>
+      <p><small>Generated with <a href="http://github.com/MetaStack-pl/MetaDocs">MetaDocs</a></small></p>
+    </div>
+          <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script><script src="js/main.js"></script><script src="js/highlight.js"></script>
+          <script>hljs.initHighlightingOnLoad();</script>
         </body>
       </html>

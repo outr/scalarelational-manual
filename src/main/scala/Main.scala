@@ -1,18 +1,22 @@
 import java.io.File
 
+import org.joda.time.DateTime
+
 import pl.metastack.metadocs.document._
 import pl.metastack.metadocs.document.writer._
+import pl.metastack.metadocs.document.writer.html.Components
 import pl.metastack.metadocs.input._
 
 object Main {
   def main(args: Array[String]) {
     val meta = Meta(
-      date = "August 2015",
+      date = DateTime.now(),
       title = "ScalaRelational User Manual v1.1.0",
       author = "Matt Hicks, Tim Nieradzik",
       affiliation = "OUTR Technologies, LLC",
       `abstract` = "ScalaRelational is a type-safe framework for defining, modifying, and querying SQL databases in Scala.",
-      language = "en-GB"
+      language = "en-GB",
+      url = ""
     )
 
     val files = new File("chapters")
@@ -22,13 +26,14 @@ object Main {
       .sorted
 
     val instructionSet = DefaultInstructionSet
+      .inherit(BookInstructionSet)
       .inherit(CodeInstructionSet)
       .inherit(DraftInstructionSet)
-      .withAliases(Map(
+      .withAliases(
         "b" -> Bold,
         "i" -> Italic,
         "item" -> ListItem
-      ))
+      )
 
     val rawTree = Document.loadFiles(files)
     val docTree = Document.toDocumentTree(
@@ -54,16 +59,30 @@ object Main {
 
     val docTreeWithOutput = sbtScala.embedOutput(docTreeWithExternalCode)
 
+    val skeleton = Components.pageSkeleton(
+      cssPaths = Seq(
+        "css/kult.css",
+        "css/highlight.css"
+      ),
+      jsPaths = Seq(
+        "//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
+        "js/main.js",
+        "js/highlight.js"
+      ),
+      script = Some("hljs.initHighlightingOnLoad();"),
+      favicon = Some("images/favicon.ico")
+    )(_, _, _)
+
     html.document.SinglePage.write(docTreeWithOutput,
-      "manual.html",
-      cssPath = Some("styles/kult.css"),
+      skeleton,
+      "manual/single-page.html",
       meta = Some(meta),
       toc = true,
       tocDepth = 2)  // Don't include subsections
 
-    html.document.MultiPage.write(docTreeWithOutput,
+    html.document.Book.write(docTreeWithOutput,
+      skeleton,
       "manual",
-      cssPath = Some("../styles/kult.css"),
       meta = Some(meta),
       tocDepth = 2)
   }

@@ -1,21 +1,24 @@
 <!DOCTYPE html><html lang="en-GB">
         <head>
-          <title>ScalaRelational User Manual v1.1.0</title>
+          <title>ScalaRelational User Manual v1.1.0 - Database support</title>
           <meta charset="utf-8"/>
+          <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
           <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
           <meta name="generator" content="MetaDocs"/>
-          <link rel="stylesheet" type="text/css" href="../styles/kult.css"/>
+          <link rel="shortcut icon" href="images/favicon.ico"/>
+          
+          <link rel="stylesheet" type="text/css" href="css/kult.css"/><link rel="stylesheet" type="text/css" href="css/highlight.css"/>
         </head>
 
         <body>
           <div id="wrapper">
-            <header>
+      <header>
             <h1 class="title">ScalaRelational User Manual v1.1.0</h1>
           </header><nav><span>Previous chapter: <a href="architecture.html">Architecture</a></span>  |  <span>Next chapter: <a href="support.html">Support</a></span></nav><h1 id="ch-database-support">Database support</h1><p>This chapter discusses ScalaRelational's database support.
 
   </p><h2 id="compatibility">Compatibility</h2><p>The following versions have been tested:
 
-    </p><table><thead><tr class="header"><th>Database</th><th>Version</th><th>sbt dependency</th></tr></thead><tbody><tr class="even"><td>H2</td><td>v1.4.187</td><td><code>scalarelational-h2</code></td></tr><tr class="odd"><td>MariaDB/MySQL</td><td>v5.1.36</td><td><code>scalarelational-mariadb</code></td></tr></tbody></table><h2 id="h2">H2</h2><p>For better performance, <a href="http://brettwooldridge.github.io/HikariCP/">HikariCP</a> is supported. Add the <code>HikariSupport</code><i>trait</i> to your <code>H2Datastore</code>.</p><h2 id="mariadbmysql">MariaDB/MySQL</h2><p>This library is guaranteed to work with MariaDB. MySQL is supported for the most part, but without any guarantee.</p><p>MariaDB and MySQL have a row size limit. If you don't set a <code>ColumnLength</code> for <code>VARCHAR</code> (i.e. <code>String</code>) explicitly, <code>ColumnLength(200)</code> will be used. You can globally override the default length in the <code>Datastore</code> as follows:</p><pre class="sourceCode scala"><code>object GettingStartedDatastore extends MariaDBDatastore(config) {
+    </p><table><thead><tr class="header"><th>Database</th><th>Version</th><th>sbt dependency</th></tr></thead><tbody><tr class="even"><td>H2</td><td>v1.4.187</td><td><code>scalarelational-h2</code></td></tr><tr class="odd"><td>MariaDB/MySQL</td><td>v5.1.36</td><td><code>scalarelational-mariadb</code></td></tr></tbody></table><h2 id="h2">H2</h2><p>For better performance, <a href="http://brettwooldridge.github.io/HikariCP/">HikariCP</a> is supported. Add the <code>HikariSupport</code><i>trait</i> to your <code>H2Datastore</code>.</p><h2 id="mariadbmysql">MariaDB/MySQL</h2><p>This library is guaranteed to work with MariaDB. MySQL is supported for the most part, but without any guarantee.</p><p>MariaDB and MySQL have a row size limit. If you don't set a <code>ColumnLength</code> for <code>VARCHAR</code> (i.e. <code>String</code>) explicitly, <code>ColumnLength(200)</code> will be used. You can globally override the default length in the <code>Datastore</code> as follows:</p><pre class="sourceCode scala"><code data-lang="scala">object GettingStartedDatastore extends MariaDBDatastore(config) {
   override def DefaultVarCharLength = 200
 
   object suppliers extends MappedTable[Supplier](&quot;SUPPLIERS&quot;) {
@@ -23,7 +26,9 @@
     ...
   }
 }</code></pre><p>Alternatively, you can specify a custom length for some selected columns (see <a href="table-definition-1.html#custom-column-length">this section</a>).</p><p>Please note that unlike MariaDB, MySQL does not support the clause <code>CREATE INDEX IF NOT EXISTS</code>.</p><div><b>Todo:</b> What are the consequences?</div>
-            <p><small>Generated with <a href="http://github.com/MetaStack-pl/MetaDocs">MetaDocs</a>.</small></p>
-          </div>
+      <p><small>Generated with <a href="http://github.com/MetaStack-pl/MetaDocs">MetaDocs</a></small></p>
+    </div>
+          <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script><script src="js/main.js"></script><script src="js/highlight.js"></script>
+          <script>hljs.initHighlightingOnLoad();</script>
         </body>
       </html>
