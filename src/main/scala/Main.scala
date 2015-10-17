@@ -4,8 +4,9 @@ import org.joda.time.DateTime
 
 import pl.metastack.metadocs.input._
 import pl.metastack.metadocs.document._
-import pl.metastack.metadocs.document.writer._
-import pl.metastack.metadocs.document.writer.html.Components
+import pl.metastack.metadocs.input.metadocs._
+import pl.metastack.metadocs.output.html.Components
+import pl.metastack.metadocs.output.html.document.{Book, SinglePage}
 
 object Main {
   def main(args: Array[String]) {
@@ -87,14 +88,14 @@ object Main {
       favicon = Some("images/favicon.ico")
     )(_, _, _)
 
-    html.document.SinglePage.write(docTreeWithCode,
+    SinglePage.write(docTreeWithCode,
       skeleton,
       "manual/single-page.html",
       meta = Some(meta),
       toc = true,
       tocDepth = 2)  // Don't include subsections
 
-    html.document.Book.write(docTreeWithCode,
+    Book.write(docTreeWithCode,
       skeleton,
       "manual",
       meta = Some(meta),
