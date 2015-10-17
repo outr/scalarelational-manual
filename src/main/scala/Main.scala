@@ -2,10 +2,10 @@ import java.io.File
 
 import org.joda.time.DateTime
 
+import pl.metastack.metadocs.input._
 import pl.metastack.metadocs.document._
 import pl.metastack.metadocs.document.writer._
 import pl.metastack.metadocs.document.writer.html.Components
-import pl.metastack.metadocs.input._
 
 object Main {
   def main(args: Array[String]) {
@@ -19,11 +19,23 @@ object Main {
       url = ""
     )
 
-    val files = new File("chapters")
-      .listFiles()
-      .map(_.getPath)
-      .filter(_.endsWith(".txt"))
-      .sorted
+    val chapters = Seq(
+      "introduction",
+      "getting_started",
+      "mapper",
+      "querying",
+      "tabledef",
+      "architecture",
+      "databases",
+      "support",
+      "contributing",
+      "changelog",
+      "benchmarks",
+      "license"
+    )
+
+    val files = chapters.map(chapter =>
+      new File(s"src/main/resources/$chapter.md"))
 
     val instructionSet = DefaultInstructionSet
       .inherit(BookInstructionSet)
@@ -35,15 +47,17 @@ object Main {
         "item" -> ListItem
       )
 
-    val rawTree = Document.loadFiles(files)
-    val docTree = Document.toDocumentTree(
-      rawTree,
-      instructionSet,
-      generateId = caption => Some(caption.collect {
-        case c if c.isLetterOrDigit => c
-        case c if c.isSpaceChar => '-'
-      }.toLowerCase)
+    val rawTrees = files.flatMap(file =>
+      Markdown.loadFileWithExtensions(file,
+        instructionSet,
+        generateId = caption => Some(caption.collect {
+          case c if c.isLetterOrDigit => c
+          case c if c.isSpaceChar => '-'
+        }.toLowerCase)
+      ).toOption
     )
+
+    val docTree = Document.mergeTrees(rawTrees)
 
     // Explicitly print out all chapters/sections which is useful when
     // restructuring the document
@@ -53,34 +67,34 @@ object Main {
 
     Document.printTodos(docTree)
 
-    val sbtScala = new SbtScala("projects")
-    val docTreeWithExternalCode = sbtScala.createProjects(docTree)
-    sbtScala.runProjects(docTree)
-
-    val docTreeWithOutput = sbtScala.embedOutput(docTreeWithExternalCode)
+    val pipeline =
+      Document.pipeline
+        .andThen(CodeProcessor.embedListings _)
+        .andThen(CodeProcessor.embedOutput _)
+    val docTreeWithCode = pipeline(docTree)
 
     val skeleton = Components.pageSkeleton(
       cssPaths = Seq(
         "css/kult.css",
-        "css/highlight.css"
+        "css/default.min.css"
       ),
       jsPaths = Seq(
         "//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
         "js/main.js",
-        "js/highlight.js"
+        "js/highlight.pack.js"
       ),
       script = Some("hljs.initHighlightingOnLoad();"),
       favicon = Some("images/favicon.ico")
     )(_, _, _)
 
-    html.document.SinglePage.write(docTreeWithOutput,
+    html.document.SinglePage.write(docTreeWithCode,
       skeleton,
       "manual/single-page.html",
       meta = Some(meta),
       toc = true,
       tocDepth = 2)  // Don't include subsections
 
-    html.document.Book.write(docTreeWithOutput,
+    html.document.Book.write(docTreeWithCode,
       skeleton,
       "manual",
       meta = Some(meta),

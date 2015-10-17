@@ -7,58 +7,39 @@
           <meta name="generator" content="MetaDocs"/>
           <link rel="shortcut icon" href="images/favicon.ico"/>
           
-          <link rel="stylesheet" type="text/css" href="css/kult.css"/><link rel="stylesheet" type="text/css" href="css/highlight.css"/>
+          <link rel="stylesheet" type="text/css" href="css/kult.css"/><link rel="stylesheet" type="text/css" href="css/default.min.css"/>
         </head>
 
         <body>
           <div id="wrapper">
       <header>
             <h1 class="title">ScalaRelational User Manual v1.1.0</h1>
-          </header><nav><span>Previous chapter: <a href="querying-1.html">Querying</a></span>  |  <span>Next chapter: <a href="architecture.html">Architecture</a></span></nav><h1 id="table-definition-1">Table definition</h1><div><b>Todo:</b> Check and complete chapter</div><h2 id="mapper-1">Mapper</h2><p>See the chapter <a href="mapper.html">Mapper</a> for more information.</p><h2 id="column-types">Column types</h2><h3 id="references">References</h3><p>References are a type-safe abstraction for foreign keys:
+          </header><nav><span>Previous chapter: <a href="querying-1.html">Querying</a></span>  |  <span>Next chapter: <a href="architecture.html">Architecture</a></span></nav><h1 id="table-definition-1">Table definition</h1><p></p><h2 id="mapper-1">Mapper</h2><p>See the chapter <a href="mapper.html">mapper</a> for more information.</p><h2 id="column-types">Column types</h2><h2 id="references">References</h2><p>References are a type-safe abstraction for foreign keys:</p><pre class="sourceCode scala"><code data-lang="scala">val supID = column[Ref[Supplier], Int](&quot;SUPID&quot;, new ForeignKey(suppliers.id))</code></pre><p>You can call <code>ref</code> on every table to obtain its reference.</p><h3 id="option">Option</h3><p>We prevent <code>null</code> pointers by introducing an optional column type:</p><pre class="sourceCode scala"><code data-lang="scala">val id = column[Option[Int], Int](&quot;COFID&quot;, PrimaryKey, AutoIncrement)</code></pre><p>The second type parameter denotes the underlying SQL type.</p><p>You can call <code>opt</code> on every column to obtain its values wrapped in an optional column type. This is sometimes necessary when comparing an optional column with a non-optional column in a query:</p><p><pre class="sourceCode scala"><code data-lang="scala">import MapperDatastore._
 
-      </p><pre class="sourceCode scala"><code data-lang="scala">val supID = column[Ref[Supplier], Int](&quot;SUP_ID&quot;, new ForeignKey(suppliers.id))</code></pre><p>You can call <code>ref</code> on every table to obtain its reference.</p><h3 id="option">Option</h3><p>We prevent <code>null</code> pointers by introducing an optional column type:</p><pre class="sourceCode scala"><code data-lang="scala">val id = column[Option[Int], Int](&quot;COF_ID&quot;, PrimaryKey, AutoIncrement)</code></pre><p>The second type parameter denotes the underlying SQL type.</p><p>You can call <code>opt</code> on every column to obtain its values wrapped in an optional column type. This is sometimes necessary when comparing an optional column with a non-optional column in a query:</p><pre class="sourceCode scala"><code data-lang="scala">val query = (
-  select (*)
-  from coffees
-  innerJoin suppliers
-  on suppliers.id === supID.opt
-)</code></pre><h3 id="enumeration">Enumeration</h3><p>You need these two imports:
-
-      </p><pre class="sourceCode scala"><code data-lang="scala">import org.powerscala.enum.{EnumEntry, Enumerated}</code></pre><p>An enumeration may look like:
-
-      </p><pre class="sourceCode scala"><code data-lang="scala">sealed abstract class Status extends EnumEntry
-
-object Status extends Enumerated[Status] {
-  case object Disabled extends Status
-  case object Enabled extends Status
-
-  val values = findValues.toVector
-}</code></pre><p>Use the enumeration in a column like this:
-
-      </p><pre class="sourceCode scala"><code data-lang="scala">val status = column[Status, String](&quot;STATUS&quot;)</code></pre><p>The underlying SQL type of enumerations is a string.
-    </p><h3 id="blobs">Blobs</h3><p>A column serialising an object looks as follows:
-
-      </p><pre class="sourceCode scala"><code data-lang="scala">val fruit = column[Fruit, Blob](&quot;fruit&quot;,
-  ObjectSerializationDataTypeCreator.create[Fruit])</code></pre><p>There is also an untyped <code>Blob</code> column type:</p><pre class="sourceCode scala"><code data-lang="scala">val content = column[Blob](&quot;content&quot;)</code></pre><h3 id="custom-column-type">Defining a custom type</h3><div><b>Todo:</b> Extend section</div><p>Example for storing string lists in a <code>VARCHAR</code> column:</p><pre class="sourceCode scala"><code data-lang="scala">object ListConverter extends SQLConversion[List[String], String] {
+val query = (
+  select (coffees.*)
+    from coffees
+    innerJoin suppliers
+    on suppliers.ref === coffees.supID
+)</code></pre></p><h3 id="blobs">Blobs</h3><p>A column serialising an object looks as follows:</p><pre class="sourceCode scala"><code data-lang="scala">val fruit = column[Fruit, Blob](&quot;fruit&quot;, ObjectSerializationDataTypeCreator.create[Fruit])</code></pre><p>There is also an untyped <code>Blob</code> column type:</p><pre class="sourceCode scala"><code data-lang="scala">val content = column[Blob](&quot;content&quot;)</code></pre><h2 id="defining-a-custom-type">Defining a custom type</h2><p>Example for storing string lists in a <code>VARCHAR</code> column:</p><pre class="sourceCode scala"><code data-lang="scala">object ListConverter extends SQLConversion[List[String], String] {
   override def toSQL(column: ColumnLike[List[String], String], value: List[String]): String = value.mkString(&quot;|&quot;)
   override def fromSQL(column: ColumnLike[List[String], String], value: String): List[String] = value.split('|').toList
 }
-implicit def listDataType = new DataType[List[String], String](Types.VARCHAR, SQLType(&quot;VARCHAR(1024)&quot;), ListConverter)</code></pre><h2 id="column-properties">Column properties</h2><h3 id="unique-values">Unique values</h3><p>Example:
-
-      </p><pre class="sourceCode scala"><code data-lang="scala">val name = column[String](&quot;name&quot;, Unique)</code></pre><h3 id="custom-column-length">Custom column length</h3><p>The pre-defined column types use heuristic values for the default column lengths. It may happen that the default value is not a good fit. You can change this by passing the column property <code>ColumnLength</code>:</p><pre class="sourceCode scala"><code data-lang="scala">val name = column[String](&quot;name&quot;, ColumnLength(200))</code></pre><h2 id="versioning">Versioning</h2><p>Add <code>with VersioningSupport</code> to your datastore definition and define a new upgrade instance for every new version:</p><pre class="sourceCode scala"><code data-lang="scala">object Upgrade4 extends UpgradableVersion {
+implicit def listDataType = new DataType[List[String], String](Types.VARCHAR, SQLType(&quot;VARCHAR(1024)&quot;), ListConverter)</code></pre><h2 id="column-properties">Column properties</h2><h3 id="unique-values">Unique values</h3><p>Example:</p><pre class="sourceCode scala"><code data-lang="scala">val name = column[String](&quot;name&quot;, Unique)</code></pre><h3 id="custom-column-length">Custom column length</h3><p>The pre-defined column types use heuristic values for the default column lengths. It may happen that the default value is not a good fit. You can change this by passing the column property <code>ColumnLength</code>:</p><pre class="sourceCode scala"><code data-lang="scala">val name = column[String](&quot;name&quot;, ColumnLength(200))</code></pre><h2 id="versioning">Versioning</h2><p>Add <code>with VersioningSupport</code> to your datastore definition and define a new upgrade instance for every new version:</p><pre class="sourceCode scala"><code data-lang="scala">object Upgrade4 extends UpgradableVersion {
   override def version = 4
   override def upgrade() = {
-    import VersioningDatastore._
+    import VersioningDatastore.
 
     createTable(&quot;test&quot;).
       and(createColumn[Int](&quot;test2&quot;, &quot;id&quot;, PrimaryKey, AutoIncrement)).
       and(createColumn[String](&quot;test2&quot;, &quot;name&quot;)).
       and(createColumn[Option[Int], Int](&quot;test2&quot;, &quot;age&quot;)).result
   }
-}</code></pre><div><b>Todo:</b> We have to describe the table creation DSL</div><p>Within the datastore, call <code>register</code> for all upgrade objects:</p><pre class="sourceCode scala"><code data-lang="scala">register(Upgrade3)
+}</code></pre><p>Within the datastore, call <code>register</code> for all upgrade objects:</p><pre class="sourceCode scala"><code data-lang="scala">register(Upgrade3)
 register(Upgrade4)</code></pre><p>To obtain the current version, use <code>version()</code>. To upgrade to the latest version, call <code>upgrade()</code> in a session.</p>
       <p><small>Generated with <a href="http://github.com/MetaStack-pl/MetaDocs">MetaDocs</a></small></p>
     </div>
-          <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script><script src="js/main.js"></script><script src="js/highlight.js"></script>
+          <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script><script src="js/main.js"></script><script src="js/highlight.pack.js"></script>
           <script>hljs.initHighlightingOnLoad();</script>
         </body>
       </html>

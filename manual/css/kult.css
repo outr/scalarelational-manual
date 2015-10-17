@@ -141,10 +141,12 @@ pre {
 }
 
 pre {
-    background-color: #F8F5F0;
+    /*background-color: #F8F5F0;*/
     font-size: 0.7rem;
     overflow-x: auto;
-    padding: 1.3rem;
+    /*padding: 1.3rem;*/
+    padding-left: 1.3rem;
+    padding-right: 1.3rem;
     position: relative;
     white-space: pre;
     word-wrap: normal;
