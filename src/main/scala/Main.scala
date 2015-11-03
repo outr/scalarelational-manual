@@ -5,6 +5,7 @@ import org.joda.time.DateTime
 import pl.metastack.metadocs.input._
 import pl.metastack.metadocs.document._
 import pl.metastack.metadocs.input.metadocs._
+import pl.metastack.metadocs.output
 import pl.metastack.metadocs.output.html.Components
 import pl.metastack.metadocs.output.html.document.{Book, SinglePage}
 
@@ -45,8 +46,7 @@ object Main {
       .withAliases(
         "b" -> Bold,
         "i" -> Italic,
-        "item" -> ListItem
-      )
+        "item" -> ListItem)
 
     val rawTrees = files.flatMap(file =>
       Markdown.loadFileWithExtensions(file,
@@ -98,6 +98,11 @@ object Main {
     Book.write(docTreeWithCode,
       skeleton,
       "manual",
+      meta = Some(meta),
+      tocDepth = 2)
+
+    output.Markdown.write(docTreeWithCode,
+      "manual-md",
       meta = Some(meta),
       tocDepth = 2)
   }
