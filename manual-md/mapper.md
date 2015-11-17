@@ -1,4 +1,4 @@
-Previous chapter: [Getting started](getting-started.md)  |  Next chapter: [Querying](querying-1.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
+Previous chapter: [Getting started](getting-started.md)  |  Next chapter: [Querying](querying-1.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/manual/mapper.md)
 
 # Mapper
 

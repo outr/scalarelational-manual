@@ -1,4 +1,4 @@
-Previous chapter: [Databases](databases.md)  |  Next chapter: [Contributing](contributing.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
+Previous chapter: [Databases](databases.md)  |  Next chapter: [Contributing](contributing.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/manual/support.md)
 
 # Support
 ## Test cases

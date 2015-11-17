@@ -1,4 +1,4 @@
-Previous chapter: [Appendix: Benchmarks](appendix-benchmarks.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
+Previous chapter: [Appendix: Benchmarks](appendix-benchmarks.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/manual/license.md)
 
 # Appendix: License
 Permission is hereby granted, free of charge, to any person obtaining a copy

@@ -1,4 +1,4 @@
-Previous chapter: [Mapper](mapper.md)  |  Next chapter: [Table definition](table-definition-1.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
+Previous chapter: [Mapper](mapper.md)  |  Next chapter: [Table definition](table-definition-1.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/manual/querying.md)
 
 # Querying
 

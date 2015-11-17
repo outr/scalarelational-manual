@@ -1,4 +1,4 @@
-Previous chapter: [Support](support.md)  |  Next chapter: [Appendix: Changelog](appendix-changelog.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
+Previous chapter: [Support](support.md)  |  Next chapter: [Appendix: Changelog](appendix-changelog.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/manual/contributing.md)
 
 # Contributing
 If you see any potential for improvement, please open an issue first and discuss your ideas with us. We might be able to provide some guidance.

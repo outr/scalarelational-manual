@@ -1,4 +1,4 @@
-Previous chapter: [Architecture](architecture.md)  |  Next chapter: [Support](support.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
+Previous chapter: [Architecture](architecture.md)  |  Next chapter: [Support](support.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/manual/databases.md)
 
 # Databases
 This chapter discusses ScalaRelational’s database support.

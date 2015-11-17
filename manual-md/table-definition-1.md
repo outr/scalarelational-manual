@@ -1,4 +1,4 @@
-Previous chapter: [Querying](querying-1.md)  |  Next chapter: [Architecture](architecture.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
+Previous chapter: [Querying](querying-1.md)  |  Next chapter: [Architecture](architecture.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/manual/tabledef.md)
 
 # Table definition
 
