@@ -1,4 +1,4 @@
-Previous chapter: [Appendix: Changelog](appendix-changelog.md)  |  Next chapter: [Appendix: License](appendix-license.md)
+Previous chapter: [Appendix: Changelog](appendix-changelog.md)  |  Next chapter: [Appendix: License](appendix-license.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
 
 # Appendix: Benchmarks
 As you can see from the results below, the performance in ScalaRelational is significantly better than that of Slick. We will be adding additional tests and additional frameworks in the future.

@@ -1,4 +1,4 @@
-Previous chapter: [Architecture](architecture.md)  |  Next chapter: [Support](support.md)
+Previous chapter: [Architecture](architecture.md)  |  Next chapter: [Support](support.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
 
 # Databases
 This chapter discusses ScalaRelational’s database support.
@@ -24,7 +24,7 @@ object GettingStartedDatastore extends MariaDBDatastore(config) {
   override def DefaultVarCharLength = 200
 
   object suppliers extends MappedTable[Supplier]("SUPPLIERS") {
-    val name = column[String]("SUPNAME", Unique)
+    val name = column[String]("SUP_NAME", Unique)
     ...
   }
 }

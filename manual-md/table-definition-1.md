@@ -1,4 +1,4 @@
-Previous chapter: [Querying](querying-1.md)  |  Next chapter: [Architecture](architecture.md)
+Previous chapter: [Querying](querying-1.md)  |  Next chapter: [Architecture](architecture.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
 
 # Table definition
 
@@ -13,7 +13,7 @@ See the chapter [mapper](mapper.md) for more information.
 References are a type-safe abstraction for foreign keys:
 
 ```scala
-val supID = column[Ref[Supplier], Int]("SUPID", new ForeignKey(suppliers.id))
+val supID = column[Ref[Supplier], Int]("SUP_ID", new ForeignKey(suppliers.id))
 ```
 You can call `ref` on every table to obtain its reference.
 
@@ -21,7 +21,7 @@ You can call `ref` on every table to obtain its reference.
 We prevent `null` pointers by introducing an optional column type:
 
 ```scala
-val id = column[Option[Int], Int]("COFID", PrimaryKey, AutoIncrement)
+val id = column[Option[Int], Int]("COF_ID", PrimaryKey, AutoIncrement)
 ```
 The second type parameter denotes the underlying SQL type.
 
@@ -87,7 +87,7 @@ Add `with VersioningSupport` to your datastore definition and define a new upgra
 object Upgrade4 extends UpgradableVersion {
   override def version = 4
   override def upgrade() = {
-    import VersioningDatastore.
+    import VersioningDatastore._
 
     createTable("test").
       and(createColumn[Int]("test2", "id", PrimaryKey, AutoIncrement)).

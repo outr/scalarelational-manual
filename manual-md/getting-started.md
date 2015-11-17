@@ -1,4 +1,4 @@
-Previous chapter: [Introduction](introduction.md)  |  Next chapter: [Mapper](mapper.md)
+Previous chapter: [Introduction](introduction.md)  |  Next chapter: [Mapper](mapper.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
 
 # Getting started
 

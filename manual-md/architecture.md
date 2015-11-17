@@ -1,4 +1,4 @@
-Previous chapter: [Table definition](table-definition-1.md)  |  Next chapter: [Databases](databases.md)
+Previous chapter: [Table definition](table-definition-1.md)  |  Next chapter: [Databases](databases.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
 
 # Architecture
 This chapter discusses the architecture of ScalaRelational.

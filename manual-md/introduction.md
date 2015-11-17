@@ -1,4 +1,4 @@
-[Table of contents](index.md)  |  Next chapter: [Getting started](getting-started.md)
+[Table of contents](index.md)  |  Next chapter: [Getting started](getting-started.md)  |  [Edit source](https://github.com/outr/scalarelational-manual/edit/master/https://github.com/outr/scalarelational-manual/edit/master/)
 
 # Introduction
 *ScalaRelational* is a database framework which provides a type-safe DSL for SQL in Scala. The goal in its design is to be a thin layer over SQL, making it one of the fastest database abstractions for the Scala programming language.
