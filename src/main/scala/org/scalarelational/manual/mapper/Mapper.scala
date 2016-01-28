@@ -11,7 +11,7 @@ object Mapper extends SectionSupport {
   section("create") {
     import MapperDatastore._
 
-    session {
+    withSession { implicit session =>
       create(suppliers, coffees)
     }
   }
@@ -19,7 +19,7 @@ object Mapper extends SectionSupport {
   section("insertSupplier") {
     import MapperDatastore._
 
-    session {
+    withSession { implicit session =>
       val starbucks = Supplier("Starbucks", "123 Everywhere Rd.", "Lotsaplaces", Some("CA"), "93966")
       starbucks.insert.result
     }
@@ -29,7 +29,7 @@ object Mapper extends SectionSupport {
     import MapperDatastore._
     import Ids._
 
-    transaction {
+    transaction { implicit session =>
       acmeId = Supplier("Acme, Inc.", "99 Market Street", "Groundsville", Some("CA"), "95199").insert.result
       superiorCoffeeId = Supplier("Superior Coffee", "1 Party Place", "Mendocino", None, "95460").insert.result
       theHighGroundId = Supplier("The High Ground", "100 Coffee Lane", "Meadows", Some("CA"), "93966").insert.result
@@ -42,7 +42,7 @@ object Mapper extends SectionSupport {
     import MapperDatastore._
     import Ids._
 
-    session {
+    withSession { implicit session =>
       Coffee("Colombian", acmeId, 7.99, 0, 0).insert.
         and(Coffee("French Roast", superiorCoffeeId, 8.99, 0, 0).insert).
         and(Coffee("Espresso", theHighGroundId, 9.99, 0, 0).insert).
@@ -55,16 +55,16 @@ object Mapper extends SectionSupport {
     import MapperDatastore._
     import suppliers._
 
-    session {
+    withSession { implicit session =>
       val query = select (*) from suppliers where name === "Starbucks"
-      query.to[Supplier].result.head()
+      query.to[Supplier](suppliers).result.head
     }
   }
 
   section("queryRefs") {
     import MapperDatastore._
 
-    session {
+    withSession { implicit session =>
       val query = (
         select (coffees.name, suppliers.name)
           from coffees
@@ -78,7 +78,7 @@ object Mapper extends SectionSupport {
   section("queryJoins") {
     import MapperDatastore._
 
-    session {
+    withSession { implicit session =>
       val query = (
         select (coffees.* ::: suppliers.*)
           from coffees
@@ -87,7 +87,7 @@ object Mapper extends SectionSupport {
           where coffees.name === "French Roast"
         )
 
-      val (frenchRoast, superior) = query.to[Coffee, Supplier](coffees, suppliers).result.head()
+      val (frenchRoast, superior) = query.to[Coffee, Supplier](coffees, suppliers).result.head
       s"Coffee: $frenchRoast\nSupplier: $superior"
     }
   }
@@ -95,7 +95,7 @@ object Mapper extends SectionSupport {
   section("userCreate") {
     import UsersDatastore._
 
-    session {
+    withSession { implicit session =>
       create(users)
     }
   }
@@ -103,7 +103,7 @@ object Mapper extends SectionSupport {
   section("usersInsert") {
     import UsersDatastore._
 
-    session {
+    withSession { implicit session =>
       UserGuest("guest").insert.result
       UserAdmin("admin", canDelete = true).insert.result
     }
@@ -111,15 +111,10 @@ object Mapper extends SectionSupport {
 
   section("usersQuery") {
     import UsersDatastore._
-    val query = users.q from users
+    val query = users.query
 
-    val results = query.asCase[User] { row =>
-      if (row(users.isGuest)) classOf[UserGuest]
-      else classOf[UserAdmin]
-    }
-
-    session {
-      results.result.converted.toList.mkString("\n")
+    withSession { implicit session =>
+      query.result.toList.mkString("\n")
     }
   }
 }

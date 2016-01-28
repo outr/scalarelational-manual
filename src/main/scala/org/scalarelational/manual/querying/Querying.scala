@@ -3,15 +3,12 @@ package org.scalarelational.manual.querying
 import pl.metastack.metadocs.SectionSupport
 import org.scalarelational.manual.mapper._
 
-/**
- * @author Matt Hicks <matt@outr.com>
- */
 object Querying extends SectionSupport {
   section("basicCoffees") {
     import MapperDatastore._
     import coffees._
 
-    session {
+    withSession { implicit session =>
       val query = select (*) from coffees
       query.result.toList.map { r =>
         s"${r(name)}\t${r(supID)}\t${r(price)}\t${r(sales)}\t${r(total)}"
@@ -39,7 +36,7 @@ object Querying extends SectionSupport {
   section("join") {
     import MapperDatastore._
 
-    session {
+    withSession { implicit session =>
       query.result.toList.map { r =>
         s"Coffee: ${r(coffees.name)}, Supplier: ${r(suppliers.name)}"
       }.mkString("\n")
@@ -49,7 +46,7 @@ object Querying extends SectionSupport {
   section("tuple") {
     import MapperDatastore._
 
-    session {
+    withSession { implicit session =>
       query.result.toList.map { r =>
         val (coffeeName, supplierName) = r()
         s"Coffee: $coffeeName, Supplier: $supplierName"
@@ -61,7 +58,7 @@ object Querying extends SectionSupport {
     import MapperDatastore._
     import coffees._
 
-    session {
+    withSession { implicit session =>
       val query = update(name("updated name")) where id === Some(1)
       query.result
     }
@@ -70,7 +67,7 @@ object Querying extends SectionSupport {
   section("delete") {
     import MapperDatastore._
 
-    session {
+    withSession { implicit session =>
       val query = delete(coffees) where coffees.id === Some(1)
       query.result
     }
@@ -80,9 +77,9 @@ object Querying extends SectionSupport {
     import MapperDatastore._
     import coffees._
 
-    session {
-      val query = select(price.min, price.max) from coffees
-      val (min, max) = query.result.one()
+    withSession { implicit session =>
+      val query = select(Min(price), Max(price)) from coffees
+      val (min, max) = query.result.one
       s"Min Price: $min, Max Price: $max"
     }
   }

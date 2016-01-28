@@ -17,7 +17,7 @@ object MapperDatastore extends H2Datastore(mode = H2Memory("mapper")) {
     val zip = column[String]("ZIP")
     val id = column[Option[Int], Int]("SUP_ID", PrimaryKey, AutoIncrement)
 
-    override def query = q.to[Supplier]
+    override def query = q.to[Supplier](suppliers)
   }
 
   object coffees extends MappedTable[Coffee]("COFFEES") {
@@ -28,6 +28,6 @@ object MapperDatastore extends H2Datastore(mode = H2Memory("mapper")) {
     val total = column[Int]("TOTAL")
     val id = column[Option[Int], Int]("COF_ID", PrimaryKey, AutoIncrement)
 
-    override def query = q.to[Coffee]
+    override def query = q.to[Coffee](coffees)
   }
 }

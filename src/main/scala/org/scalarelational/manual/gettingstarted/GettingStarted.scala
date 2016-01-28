@@ -2,9 +2,6 @@ package org.scalarelational.manual.gettingstarted
 
 import pl.metastack.metadocs.SectionSupport
 
-/**
- * @author Matt Hicks <matt@outr.com>
- */
 object GettingStarted extends SectionSupport {
   var acmeId: Int = _
   var superiorCoffeeId: Int = _
@@ -13,13 +10,13 @@ object GettingStarted extends SectionSupport {
   section("create") {
     import GettingStartedDatastore._
 
-    session {
+    withSession { implicit session =>
       create(suppliers, coffees)
     }
   }
   
   sectionNoExec("createVerbose") {
-    GettingStartedDatastore.session {
+    GettingStartedDatastore.withSession { implicit session =>
       GettingStartedDatastore.create(
         GettingStartedDatastore.suppliers,
         GettingStartedDatastore.coffees
@@ -30,7 +27,7 @@ object GettingStarted extends SectionSupport {
   sectionNoExec("createAliased") {
     def ds = GettingStartedDatastore
 
-    ds.session {
+    ds.withSession { implicit session =>
       ds.create(ds.suppliers, ds.coffees)
     }
   }
@@ -39,7 +36,7 @@ object GettingStarted extends SectionSupport {
     import GettingStartedDatastore._
     import suppliers._
 
-    session {
+    withSession { implicit session =>
       acmeId = insert(name("Acme, Inc."), street("99 Market Street"), city("Groundsville"), state("CA"), zip("95199")).result
       superiorCoffeeId = insert(id(49), name("Superior Coffee"), street("1 Party Place"), city("Mendocino"), state("CA"), zip("95460")).result
     }
@@ -48,7 +45,7 @@ object GettingStarted extends SectionSupport {
   section("insertShorthand") {
     import GettingStartedDatastore._
 
-    session {
+    withSession { implicit session =>
       theHighGroundId = insertInto(suppliers, 150, "The High Ground", "100 Coffee Lane", "Meadows", "CA", "93966").result
     }
   }
@@ -57,7 +54,7 @@ object GettingStarted extends SectionSupport {
     import GettingStartedDatastore._
     import coffees._
 
-    session {
+    withSession { implicit session =>
       insert(name("Colombian"), supID(acmeId), price(7.99), sales(0), total(0)).
         and(name("French Roast"), supID(superiorCoffeeId), price(8.99), sales(0), total(0)).
         and(name("Espresso"), supID(theHighGroundId), price(9.99), sales(0), total(0)).
@@ -70,7 +67,7 @@ object GettingStarted extends SectionSupport {
     import GettingStartedDatastore._
     import coffees._
 
-    session {
+    withSession { implicit session =>
       val rows = (0 to 10).map { index =>
         List(name(s"Generic Coffee ${index + 1}"), supID(49), price(6.99), sales(0), total(0))
       }
@@ -82,7 +79,7 @@ object GettingStarted extends SectionSupport {
     import GettingStartedDatastore._
     import coffees._
 
-    session {
+    withSession { implicit session =>
       val query = select (*) from coffees
 
       query.result.map { r =>
@@ -94,19 +91,19 @@ object GettingStarted extends SectionSupport {
   section("queryConverted") {
     import GettingStartedDatastore.{coffees => c, _}
 
-    session {
+    withSession { implicit session =>
       val query = select (c.name, c.supID, c.price, c.sales, c.total) from c
 
-      query.result.converted.map {
+      query.map {
         case (name, supID, price, sales, total) => s"$name  $supID  $price  $sales  $total"
-      }.mkString("\n")
+      }.result.mkString("\n")
     }
   }
 
   section("join") {
     import GettingStartedDatastore._
 
-    session {
+    withSession { implicit session =>
       val query = (select(coffees.name, suppliers.name)
         from coffees
         innerJoin suppliers on coffees.supID === suppliers.id
