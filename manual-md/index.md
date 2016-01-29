@@ -1,6 +1,6 @@
-November 2015
+January 2016
 
-# ScalaRelational User Manual v1.1.0
+# ScalaRelational User Manual v1.3.0
 **Author:** Matt Hicks, Tim Nieradzik
 
 **Affiliation:** OUTR Technologies, LLC

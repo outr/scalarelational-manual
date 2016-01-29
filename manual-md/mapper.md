@@ -8,9 +8,9 @@ The mapper module provides functionality to map table rows when persisting or se
 We must first add another dependency to our build file:
 
 ```scala
-libraryDependencies += "org.scalarelational" %% "scalarelational-mapper" % "1.1.0"
+libraryDependencies += "org.scalarelational" %% "scalarelational-mapper" % "1.3.0"
 
-libraryDependencies += "org.scalarelational" %% "scalarelational-h2" % "1.1.0"
+libraryDependencies += "org.scalarelational" %% "scalarelational-h2" % "1.3.0"
 ```
 
 ## Library imports
@@ -38,7 +38,7 @@ object MapperDatastore extends H2Datastore(mode = H2Memory("mapper")) {
     val zip = column[String]("ZIP")
     val id = column[Option[Int], Int]("SUP_ID", PrimaryKey, AutoIncrement)
 
-    override def query = q.to[Supplier]
+    override def query = q.to[Supplier](suppliers)
   }
 
   object coffees extends MappedTable[Coffee]("COFFEES") {
@@ -49,7 +49,7 @@ object MapperDatastore extends H2Datastore(mode = H2Memory("mapper")) {
     val total = column[Int]("TOTAL")
     val id = column[Option[Int], Int]("COF_ID", PrimaryKey, AutoIncrement)
 
-    override def query = q.to[Coffee]
+    override def query = q.to[Coffee](coffees)
   }
 }
 ```
@@ -63,7 +63,7 @@ As previously, create the tables using `create`:
 ```scala
 import MapperDatastore._
 
-session {
+withSession { implicit session =>
   create(suppliers, coffees)
 }
 ```
@@ -113,7 +113,7 @@ We’ve create a `Supplier` case class, but now we need to create an instance an
 ```scala
 import MapperDatastore._
 
-session {
+withSession { implicit session =>
   val starbucks = Supplier("Starbucks", "123 Everywhere Rd.", "Lotsaplaces", Some("CA"), "93966")
   starbucks.insert.result
 }
@@ -143,7 +143,7 @@ And insert some additional suppliers and capture their ids:
 import MapperDatastore._
 import Ids._
 
-transaction {
+transaction { implicit session =>
   acmeId = Supplier("Acme, Inc.", "99 Market Street", "Groundsville", Some("CA"), "95199").insert.result
   superiorCoffeeId = Supplier("Superior Coffee", "1 Party Place", "Mendocino", None, "95460").insert.result
   theHighGroundId = Supplier("The High Ground", "100 Coffee Lane", "Meadows", Some("CA"), "93966").insert.result
@@ -165,7 +165,7 @@ Now that we have some suppliers, we need to add some coffees as well:
 import MapperDatastore._
 import Ids._
 
-session {
+withSession { implicit session =>
   Coffee("Colombian", acmeId, 7.99, 0, 0).insert.
     and(Coffee("French Roast", superiorCoffeeId, 8.99, 0, 0).insert).
     and(Coffee("Espresso", theHighGroundId, 9.99, 0, 0).insert).
@@ -176,7 +176,7 @@ session {
 
 **Output:**
 ```
-List(5)
+List(1, 2, 3, 4, 5)
 ```
 
 Note that we need to use type-safe references for the suppliers.
@@ -189,15 +189,15 @@ We’ve successfully inserted our `Supplier` instance. The syntax for querying i
 import MapperDatastore._
 import suppliers._
 
-session {
+withSession { implicit session =>
   val query = select (*) from suppliers where name === "Starbucks"
-  query.to[Supplier].result.head()
+  query.to[Supplier](suppliers).result.head
 }
 ```
 
 **Output:**
 ```
-Supplier(Starbucks,123 Everywhere Rd.,Lotsaplaces,Some(CA),93966,Some(1))
+SUPPLIERS(SUP_NAME: Starbucks, STREET: 123 Everywhere Rd., CITY: Lotsaplaces, STATE: Some(CA), ZIP: 93966, SUP_ID: Some(1))
 ```
 
 The mapper will automatically match column names in the results to fields in the `case class` provided. Every query can have its own class for convenience mapping.
@@ -208,7 +208,7 @@ Use `ref` on a table definition to obtain its reference. It can then be used in 
 ```scala
 import MapperDatastore._
 
-session {
+withSession { implicit session =>
   val query = (
     select (coffees.name, suppliers.name)
       from coffees
@@ -235,7 +235,7 @@ Joins are one of the major points where ScalaRelational diverges from other fram
 ```scala
 import MapperDatastore._
 
-session {
+withSession { implicit session =>
   val query = (
     select (coffees.* ::: suppliers.*)
       from coffees
@@ -244,7 +244,7 @@ session {
       where coffees.name === "French Roast"
     )
 
-  val (frenchRoast, superior) = query.to[Coffee, Supplier](coffees, suppliers).result.head()
+  val (frenchRoast, superior) = query.to[Coffee, Supplier](coffees, suppliers).converted.head
   s"Coffee: $frenchRoast\nSupplier: $superior"
 }
 ```
@@ -296,7 +296,12 @@ object UsersDatastore extends H2Datastore(mode = H2Memory("mapper")) {
     val canDelete = column[Boolean]("canDelete", Polymorphic)
     val isGuest = column[Boolean]("isGuest")
 
-    override def query = q.to[User]
+    override def query: Query[Vector[SelectExpression[_]], User] = {
+      q.poly[User](qr =>
+        if (qr(users.isGuest)) converter[UserGuest](users)
+        else                   converter[UserAdmin](users)
+      )
+    }
   }
 }
 ```
@@ -307,7 +312,7 @@ Create the tables:
 ```scala
 import UsersDatastore._
 
-session {
+withSession { implicit session =>
   create(users)
 }
 ```
@@ -322,7 +327,7 @@ Now you can insert a heterogeneous list of entities:
 ```scala
 import UsersDatastore._
 
-session {
+withSession { implicit session =>
   UserGuest("guest").insert.result
   UserAdmin("admin", canDelete = true).insert.result
 }
@@ -337,22 +342,17 @@ To query the table, you will need to evaluate the column which encodes the origi
 
 ```scala
 import UsersDatastore._
-val query = users.q from users
+val query = users.query
 
-val results = query.asCase[User] { row =>
-  if (row(users.isGuest)) classOf[UserGuest]
-  else classOf[UserAdmin]
-}
-
-session {
-  results.result.converted.toList.mkString("\n")
+withSession { implicit session =>
+  query.result.toList.mkString("\n")
 }
 ```
 
 **Output:**
 ```
-UserGuest(guest,Some(1))
-UserAdmin(admin,true,Some(2))
+users(id: Some(1), name: guest, canDelete: null, isGuest: true)
+users(id: Some(2), name: admin, canDelete: true, isGuest: false)
 ```
 
 

@@ -8,7 +8,7 @@ This chapter will guide you through creating your first project with ScalaRelati
 The first thing you need to do is add ScalaRelational’s H2 module to your sbt project:
 
 ```scala
-libraryDependencies += "org.scalarelational" %% "scalarelational-h2" % "1.1.0"
+libraryDependencies += "org.scalarelational" %% "scalarelational-h2" % "1.3.0"
 ```
 If you’d prefer to use another database instead, please refer to the chapter [Databases](databases.md).
 
@@ -59,7 +59,7 @@ Now that we have our schema defined in Scala, we need to create the tables in th
 ```scala
 import GettingStartedDatastore._
 
-session {
+withSession { implicit session =>
   create(suppliers, coffees)
 }
 ```
@@ -75,7 +75,7 @@ All database queries must take place within a *session*.
 You’ll notice we imported `ExampleDatastore.` in an effort to minimise the amount of code required here. We can explicitly write it more verbosely like this:
 
 ```scala
-GettingStartedDatastore.session {
+GettingStartedDatastore.withSession { implicit session =>
   GettingStartedDatastore.create(
     GettingStartedDatastore.suppliers,
     GettingStartedDatastore.coffees
@@ -89,7 +89,7 @@ For the sake of readability importing the datastore is generally suggested. Alth
 ```scala
 def ds = GettingStartedDatastore
 
-ds.session {
+ds.withSession { implicit session =>
   ds.create(ds.suppliers, ds.coffees)
 }
 ```
@@ -104,7 +104,7 @@ ScalaRelational supports type-safe insertions:
 import GettingStartedDatastore._
 import suppliers._
 
-session {
+withSession { implicit session =>
   acmeId = insert(name("Acme, Inc."), street("99 Market Street"), city("Groundsville"), state("CA"), zip("95199")).result
   superiorCoffeeId = insert(id(49), name("Superior Coffee"), street("1 Party Place"), city("Mendocino"), state("CA"), zip("95460")).result
 }
@@ -118,7 +118,7 @@ There is also a shorthand when using values in order:
 ```scala
 import GettingStartedDatastore._
 
-session {
+withSession { implicit session =>
   theHighGroundId = insertInto(suppliers, 150, "The High Ground", "100 Coffee Lane", "Meadows", "CA", "93966").result
 }
 ```
@@ -132,7 +132,7 @@ If you want to insert multiple rows at the same time, you can use a batch insert
 import GettingStartedDatastore._
 import coffees._
 
-session {
+withSession { implicit session =>
   insert(name("Colombian"), supID(acmeId), price(7.99), sales(0), total(0)).
     and(name("French Roast"), supID(superiorCoffeeId), price(8.99), sales(0), total(0)).
     and(name("Espresso"), supID(theHighGroundId), price(9.99), sales(0), total(0)).
@@ -143,7 +143,7 @@ session {
 
 **Output:**
 ```
-List(5)
+List(1, 2, 3, 4, 5)
 ```
 
 This is very similar to the previous insert method, except instead of calling `result` we’re calling `and`. This converts the insert into a batch insert and you gain the performance of being able to insert several records with one insert statement.
@@ -154,7 +154,7 @@ You can also pass a `Seq` to `insertBatch`, which is useful if the rows are load
 import GettingStartedDatastore._
 import coffees._
 
-session {
+withSession { implicit session =>
   val rows = (0 to 10).map { index =>
     List(name(s"Generic Coffee ${index + 1}"), supID(49), price(6.99), sales(0), total(0))
   }
@@ -164,7 +164,7 @@ session {
 
 **Output:**
 ```
-List(16)
+List(6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
 ```
 
 
@@ -175,7 +175,7 @@ The DSL for querying a table is similar to SQL:
 import GettingStartedDatastore._
 import coffees._
 
-session {
+withSession { implicit session =>
   val query = select (*) from coffees
 
   query.result.map { r =>
@@ -209,33 +209,33 @@ Although that could look a little prettier by explicitly querying what we want t
 ```scala
 import GettingStartedDatastore.{coffees => c, _}
 
-session {
+withSession { implicit session =>
   val query = select (c.name, c.supID, c.price, c.sales, c.total) from c
 
-  query.result.converted.map {
+  query.map {
     case (name, supID, price, sales, total) => s"$name  $supID  $price  $sales  $total"
-  }.mkString("\n")
+  }.result.mkString("\n")
 }
 ```
 
 **Output:**
 ```
-Colombian  1  7.99  0  0
-French Roast  49  8.99  0  0
-Espresso  93966  9.99  0  0
-Colombian Decaf  1  8.99  0  0
-French Roast Decaf  49  9.99  0  0
-Generic Coffee 1  49  6.99  0  0
-Generic Coffee 2  49  6.99  0  0
-Generic Coffee 3  49  6.99  0  0
-Generic Coffee 4  49  6.99  0  0
-Generic Coffee 5  49  6.99  0  0
-Generic Coffee 6  49  6.99  0  0
-Generic Coffee 7  49  6.99  0  0
-Generic Coffee 8  49  6.99  0  0
-Generic Coffee 9  49  6.99  0  0
-Generic Coffee 10  49  6.99  0  0
-Generic Coffee 11  49  6.99  0  0
+COFFEES(COF_NAME: Colombian, SUP_ID: 1, PRICE: 7.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: French Roast, SUP_ID: 49, PRICE: 8.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Espresso, SUP_ID: 93966, PRICE: 9.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Colombian Decaf, SUP_ID: 1, PRICE: 8.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: French Roast Decaf, SUP_ID: 49, PRICE: 9.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 1, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 2, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 3, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 4, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 5, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 6, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 7, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 8, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 9, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 10, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
+COFFEES(COF_NAME: Generic Coffee 11, SUP_ID: 49, PRICE: 6.99, SALES: 0, TOTAL: 0)
 ```
 
 Joins are supported too. In the following example we query all coffees back filtering and joining with suppliers:
@@ -243,7 +243,7 @@ Joins are supported too. In the following example we query all coffees back filt
 ```scala
 import GettingStartedDatastore._
 
-session {
+withSession { implicit session =>
   val query = (select(coffees.name, suppliers.name)
     from coffees
     innerJoin suppliers on coffees.supID === suppliers.id

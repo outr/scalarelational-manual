@@ -47,9 +47,8 @@ object Querying extends SectionSupport {
     import MapperDatastore._
 
     withSession { implicit session =>
-      query.result.toList.map { r =>
-        val (coffeeName, supplierName) = r()
-        s"Coffee: $coffeeName, Supplier: $supplierName"
+      query.converted.toList.map {
+        case (coffeeName, supplierName) => s"Coffee: $coffeeName, Supplier: $supplierName"
       }
     }
   }
@@ -79,7 +78,7 @@ object Querying extends SectionSupport {
 
     withSession { implicit session =>
       val query = select(Min(price), Max(price)) from coffees
-      val (min, max) = query.result.one
+      val (min, max) = query.converted.one
       s"Min Price: $min, Max Price: $max"
     }
   }

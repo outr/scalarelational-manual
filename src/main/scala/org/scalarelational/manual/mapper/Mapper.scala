@@ -87,7 +87,7 @@ object Mapper extends SectionSupport {
           where coffees.name === "French Roast"
         )
 
-      val (frenchRoast, superior) = query.to[Coffee, Supplier](coffees, suppliers).result.head
+      val (frenchRoast, superior) = query.to[Coffee, Supplier](coffees, suppliers).converted.head
       s"Coffee: $frenchRoast\nSupplier: $superior"
     }
   }
