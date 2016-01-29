@@ -42,7 +42,7 @@ object Main extends App {
 
   val meta = Meta(
     date = DateTime.now(),
-    title = "ScalaRelational User Manual v1.1.0",
+    title = s"ScalaRelational User Manual v${BuildInfo.version}",
     author = "Matt Hicks, Tim Nieradzik",
     affiliation = "OUTR Technologies, LLC",
     `abstract` = "ScalaRelational is a type-safe framework for defining, modifying, and querying SQL databases in Scala.",
