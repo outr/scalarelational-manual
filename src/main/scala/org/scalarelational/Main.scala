@@ -68,6 +68,7 @@ object Main extends App {
   val rawTrees = files.flatMap(file =>
     Markdown.loadFileWithExtensions(file,
       instructionSet,
+      constants = Map("version" -> BuildInfo.version),
       generateId = caption => Some(caption.collect {
         case c if c.isLetterOrDigit => c
         case c if c.isSpaceChar => '-'

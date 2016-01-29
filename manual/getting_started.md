@@ -6,7 +6,7 @@ This chapter will guide you through creating your first project with ScalaRelati
 The first thing you need to do is add ScalaRelational's H2 module to your sbt project:
 
 ```scala
-libraryDependencies += "org.scalarelational" %% "scalarelational-h2" % "1.1.0"
+libraryDependencies += "org.scalarelational" %% "scalarelational-h2" % "%version%"
 ```
 
 If you'd prefer to use another database instead, please refer to the chapter [jump ref="databases"].
