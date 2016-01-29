@@ -1,7 +1,7 @@
 package org.scalarelational
 
 import java.io.File
-import java.nio.file.{Files, Paths}
+import java.nio.file.{LinkOption, Files, Paths}
 
 import org.joda.time.DateTime
 
@@ -139,7 +139,7 @@ object Main extends App {
   links.map { case (from, to) =>
     Paths.get(from) -> Paths.get(to)
   }.foreach { case (from, to) =>
-    if (Files.exists(from)) Files.delete(from)
+    if (Files.exists(from, LinkOption.NOFOLLOW_LINKS)) Files.delete(from)
     Files.createSymbolicLink(from, to)
   }
 
