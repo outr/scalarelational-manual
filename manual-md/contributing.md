@@ -4,7 +4,7 @@ Previous chapter: [Support](support.md)  |  Next chapter: [Appendix: Changelog](
 If you see any potential for improvement, please open an issue first and discuss your ideas with us. We might be able to provide some guidance.
 
 ## Manual
-If you find mistakes or missing information in the manual, please let us know [here](/). todo{Add correct link to GitHub issues}
+If you find mistakes or missing information in the manual, please let us know [here](https://gitter.im/outr/scalarelational). Please report bugs in [our issue tracker](https://github.com/outr/scalarelational/issues).
 
 
 ## Developing
